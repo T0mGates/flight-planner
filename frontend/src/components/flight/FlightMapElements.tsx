@@ -45,8 +45,8 @@ function airportPosition(airport: string, airports: AirportDict) {
   return parseSingleLatLong(airports[airport].latlon);
 }
 
-export default function FlightMapElements({ flight, airports, onSelect }:
-  { flight: Flight, airports: AirportDict, onSelect: (id: number) => void }) {
+export default function FlightMapElements({ flight, airports, selectedFlightId, onSelect }:
+  { flight: Flight, airports: AirportDict, selectedFlightId: number, onSelect: (id: number) => void }) {
 
   const positions: LatLng[] = parseLatLong(flight.route);
   const lineElements: LatLng[] = [
@@ -101,6 +101,22 @@ export default function FlightMapElements({ flight, airports, onSelect }:
               interactive: false // Clicks pass through to the 'Hit Area' below
             }}
           />
+
+          {/* The "if selected" line */}
+          {selectedFlightId == flight.id 
+          ?
+            <Polyline
+              positions={lineElements}
+              pathOptions={{
+                color: colour,
+                weight: 10,
+                opacity: 0.7,
+                interactive: false // Clicks pass through to the 'Hit Area' below
+              }}
+            />
+          :
+              <></>
+          }
 
           <PlaneMarker position={positions[0]} heading={heading}
           />

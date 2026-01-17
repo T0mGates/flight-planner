@@ -109,7 +109,7 @@ function App() {
           className="h-30 w-auto opacity-80 grayscale contrast-125"
         />
       </div>
-      <Map flights={Object.values(flightData ?? {})} airports={airportData ?? {}} onSelectFlight={handleSelect} />
+      <Map flights={Object.values(flightData ?? {})} airports={airportData ?? {}} selectedFlightId={selectedId ?? -1} onSelectFlight={handleSelect} />
       <div className="absolute top-4 right-4 w-96 h-[calc(100vh-2rem)] z-1000 flex flex-col gap-4">
         <AnimatePresence mode="popLayout">
           {selectedFlight && (
