@@ -46,7 +46,7 @@ export default function FlightInfoCard({ flights, selectedId, onSelect, filters,
                             <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-400">
                                 ACID: 
                                 <span className="text-blue-400">
-                                    {flight.ACID}
+                                    {` ${flight.ACID}`}
                                 </span>
                                     </span>
                                 </div>
