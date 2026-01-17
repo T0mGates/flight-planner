@@ -1,12 +1,18 @@
 from fastapi    import FastAPI, HTTPException, status
 from models     import Flight
 from database   import db
+from backend.sentry.error_monitoring import init_fast_api_sentry
+from backend.logging.logger import get_logger
 
+
+init_fast_api_sentry()
 database    = db.Database
 database.init()
 
 app         = FastAPI()
 
+# Setup logger
+log = get_logger()
 
 @app.get("/")
 def read_root():
