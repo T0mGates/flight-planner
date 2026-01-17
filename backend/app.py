@@ -1,8 +1,9 @@
-from fastapi    import FastAPI, HTTPException, status
-from backend.models     import Flight
-from backend.database   import db
-from backend.sentry.error_monitoring import init_fast_api_sentry
-from backend.logging.logger import get_logger
+from fastapi                            import FastAPI, HTTPException, status
+from backend.models                     import Flight
+from backend.database                   import db
+from fastapi.middleware.cors            import CORSMiddleware
+from backend.sentry.error_monitoring    import init_fast_api_sentry
+from backend.logging.logger             import get_logger
 
 
 init_fast_api_sentry()
@@ -13,6 +14,17 @@ app         = FastAPI()
 
 # Setup logger
 log = get_logger()
+origins = [
+    "http://localhost:5173"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,         # Allows the specified origins
+    allow_credentials=True,        # Allows cookies/authorization headers to be sent
+    allow_methods=["*"],           # Allows all HTTP methods (GET, POST, PUT, DELETE, etc.)
+    allow_headers=["*"],           # Allows all headers
+)
 
 @app.get("/")
 def read_root():
