@@ -42,7 +42,7 @@ def map_to_standard_formats(df: pd.DataFrame) -> pd.DataFrame:
     try:
         df['arrival_airport'] = df['arrival_airport'].map(TRANSLATION)
         df['departure_airport'] = df['departure_airport'].map(TRANSLATION)
-        df['plane_type'] = df['plane_type'].map(PLANE_TYPE_MAP)
+        df['Plane_type'] = df['Plane_type'].map(PLANE_TYPE_MAP)
         return df
     except Exception as e:
         print(f"An error occurred while transforming the airports: {e}")
@@ -89,7 +89,7 @@ def create_flight_lookup(df: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: Lookup DataFrame with static flight attributes.
     """
     try:
-        lookup_df = df[['ACID', 'plane_type', 'departure_time', 'is_cargo', 'passengers']].drop_duplicates().reset_index(drop=True)
+        lookup_df = df[['ACID', 'Plane_type', 'departure_time', 'is_cargo', 'passengers']].drop_duplicates().reset_index(drop=True)
         return lookup_df
     except Exception as e:
         print(f"An error occurred while creating flight lookup table: {e}")
@@ -137,6 +137,32 @@ def calculate_flight_duration(df: pd.DataFrame, flight_lookup: pd.DataFrame, air
         print(f"An error occurred while calculating flight durations: {e}")
         return df
     
+def calculate_altitude(df: pd.DataFrame, flight_lookup: pd.DataFrame, airplane_lookup: pd.DataFrame) -> pd.DataFrame:
+    """
+    Calculate optimal altitude for each flight segment.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing flight waypoints.
+        flight_lookup (pd.DataFrame): Lookup DataFrame with flight attributes.
+        airplane_lookup (pd.DataFrame): Lookup DataFrame with airplane altitudes.
+
+    Returns:
+        pd.DataFrame: DataFrame with chosen altitudes.
+    """
+    try:
+        merged_df = df.merge(airplane_lookup[['Aircraft_Type', 'Min_altitude_ft', 'Max_altitude_ft']], on='Aircraft_Type', how='left')
+        
+        # Choose random altitude within optimal range for simplicity
+        merged_df['chosen_altitude_ft'] = merged_df.apply(
+            lambda row: np.random.randint(row['Min_altitude_ft'], row['Max_altitude_ft'] + 1),
+            axis=1
+        )
+        
+        return merged_df
+    except Exception as e:
+        print(f"An error occurred while calculating altitudes: {e}")
+        return df
+    
 def calculate_waypoint_times(df: pd.DataFrame, lookup_df: pd.DataFrame) -> pd.DataFrame:
     """
     Calculate estimated arrival times at each waypoint based on departure time and segment durations.
@@ -172,30 +198,6 @@ def calculate_waypoint_times(df: pd.DataFrame, lookup_df: pd.DataFrame) -> pd.Da
     except Exception as e:
         print(f"An error occurred while calculating waypoint times: {e}")
         return df
-    
-def calculate_collision_risks(df: pd.DataFrame, nautical_horizontal_threshold: float = 5, vertical_ft_threshold: float = 2000,
-                              time_slice_seconds: int = 10) -> pd.DataFrame:
-    """
-    Collisions are when flights come within a certain horizontal and vertical threshold.
-    """
-    df = df.copy()
-    # get min and max times, then create time slices
-    min_time = df['estimated_departure_time'].min()
-    max_time = df['estimated_arrival_time'].max()
-    time_slices = pd.date_range(start=min_time, end=max_time, freq=f'{time_slice_seconds}S')
-    collision_risks = []
-    for i in range(len(time_slices) - 1):
-        start_time = time_slices[i]
-        end_time = time_slices[i + 1]
-        active_flights = df[(df['estimated_departure_time'] <= end_time) & (df['estimated_arrival_time'] >= start_time)]
-        for j in range(len(active_flights)):
-            for k in range(j + 1, len(active_flights)):
-                # interpolate positions
-                flight1 = active_flights.iloc[j]
-                flight2 = active_flights.iloc[k]
-        print("Finished time slice:", start_time, "to", end_time)
-                
-    return pd.DataFrame(collision_risks)
 
 def get_3d_position(lat, lon, alt_ft):
     """
@@ -219,7 +221,7 @@ def get_3d_position(lat, lon, alt_ft):
     return np.array([x, y, z])
 
 
-def calculate_cpa_analytical(row1: pd.Series, row2: pd.Series) -> tuple:
+def calculate_cpa_analytical(row1: pd.Series, row2: pd.Series, horizontal_threshold_nm: int) -> tuple:
     """
     Analytically calculate the closest point of approach (CPA) between two aircraft.
     
@@ -234,7 +236,7 @@ def calculate_cpa_analytical(row1: pd.Series, row2: pd.Series) -> tuple:
     
     Args:
         row1, row2: Series with segment info
-        coords_lookup: Dictionary mapping waypoint codes to (lat, lon) tuples
+        horizontal_threshold_nm: Horizontal distance threshold in nautical miles
     
     Returns:
         tuple: (min_distance_nm, cpa_time_timestamp, is_valid)
@@ -245,9 +247,9 @@ def calculate_cpa_analytical(row1: pd.Series, row2: pd.Series) -> tuple:
     lat2_start, lon2_start = row2['from_lat_rad'], row2['from_lon_rad']
     lat2_end, lon2_end = row2['to_lat_rad'], row2['to_lon_rad']
     
-    # Get altitudes (use midpoint of range for calculation)
-    alt1 = (row1['Min_altitude_ft'] + row1['Max_altitude_ft']) / 2
-    alt2 = (row2['Min_altitude_ft'] + row2['Max_altitude_ft']) / 2
+    # Get altitudes (use chosen altitude for calculation)
+    alt1 = row1['chosen_altitude_ft']
+    alt2 = row2['chosen_altitude_ft']
     
     # Get time parameters (in seconds since epoch)
     t1_start = row1['estimated_departure_time'].timestamp()
@@ -328,6 +330,38 @@ def calculate_cpa_analytical(row1: pd.Series, row2: pd.Series) -> tuple:
         t_since_overlap = t_cpa - overlap_start
         P1_cpa = P1_at_overlap + V1 * t_since_overlap
         P2_cpa = P2_at_overlap + V2 * t_since_overlap
+        
+    # Distance squared as function of time: D²(t) = ||P_rel_0 + V_rel * t||²
+    # D²(t) = a*t² + b*t + c
+    a = np.dot(V_rel, V_rel)
+    b = 2 * np.dot(P_rel_0, V_rel)
+    c = np.dot(P_rel_0, P_rel_0) - horizontal_threshold_nm**2
+
+        
+    # Solve a*t² + b*t + c = 0 for t (relative to overlap_start)
+    interval_start, interval_end = None, None
+    if a != 0:
+        discriminant = b**2 - 4*a*c
+        if discriminant >= 0:
+            sqrt_disc = np.sqrt(discriminant)
+            t1 = (-b - sqrt_disc) / (2*a)
+            t2 = (-b + sqrt_disc) / (2*a)
+            # Sort and clamp to [0, overlap_end - overlap_start]
+            t_low = max(0, min(t1, t2))
+            t_high = min(overlap_end - overlap_start, max(t1, t2))
+            if t_low <= t_high:
+                interval_start = overlap_start + t_low
+                interval_end = overlap_start + t_high
+    elif b != 0:
+        # Linear case
+        t_cross = -c / b
+        if 0 <= t_cross <= (overlap_end - overlap_start):
+            interval_start = interval_end = overlap_start + t_cross
+    else:
+        # Constant distance, check if within threshold
+        if c <= 0:
+            interval_start = overlap_start
+            interval_end = overlap_end
     
     # Calculate distance at CPA
     distance_vector = P1_cpa - P2_cpa
@@ -336,7 +370,7 @@ def calculate_cpa_analytical(row1: pd.Series, row2: pd.Series) -> tuple:
     # This is approximate but works well for collision detection
     distance_horizontal = np.sqrt(distance_vector[0]**2 + distance_vector[1]**2)
     
-    return distance_horizontal, t_cpa, True
+    return distance_horizontal, t_cpa, True, interval_start, interval_end
 
 
 def detect_collisions(
@@ -374,8 +408,8 @@ def detect_collisions(
         )
         
         def parse_coord(coord):
-                val = float(coord[:-1])
-                return val if coord[-1] in 'NE' else -val
+            val = float(coord[:-1])
+            return val if coord[-1] in 'NE' else -val
 
         from_lat = df['from'].str.split('/', expand=True)[0].apply(parse_coord)
         from_lon = df['from'].str.split('/', expand=True)[1].apply(parse_coord)
@@ -390,8 +424,6 @@ def detect_collisions(
         df = df.sort_values('estimated_departure_time').reset_index(drop=True)
         
         collisions = []
-        total_comparisons = 0
-        filtered_comparisons = 0
         
         # Pre-filter: only compare segments with time overlap
         for idx1, row1 in df.iterrows():
@@ -404,20 +436,19 @@ def detect_collisions(
             )
             
             potential_conflicts = df[time_mask]
-            total_comparisons += len(potential_conflicts)
             
             if len(potential_conflicts) == 0:
                 print(f"No potential conflicts for flight {row1['ACID']}.")
                 continue
             
-            # Quick filter 2: Altitude overlap check
+            # Quick filter 2: Check if chosen_altitude_ft ranges overlap within vertical threshold
             altitude_overlap_mask = (
-                (potential_conflicts['Min_altitude_ft'] <= row1['Max_altitude_ft'] + vertical_threshold_ft) &
-                (potential_conflicts['Max_altitude_ft'] >= row1['Min_altitude_ft'] - vertical_threshold_ft)
+                (potential_conflicts['chosen_altitude_ft'] - row1['chosen_altitude_ft'] <= vertical_threshold_ft) |
+                (row1['chosen_altitude_ft'] - potential_conflicts['chosen_altitude_ft'] <= vertical_threshold_ft)
             )
             
+            
             vertical_conflicts = potential_conflicts[altitude_overlap_mask]
-            filtered_comparisons += len(vertical_conflicts)
             
             if len(vertical_conflicts) == 0:
                 continue
@@ -425,8 +456,8 @@ def detect_collisions(
             # Calculate CPA for each potential conflict
             for idx2, row2 in vertical_conflicts.iterrows():
                 # Analytical CPA calculation
-                cpa_dist, cpa_time, is_valid = calculate_cpa_analytical(
-                    row1, row2
+                cpa_dist, cpa_time, is_valid, interval_start, interval_end = calculate_cpa_analytical(
+                    row1, row2, horizontal_threshold_nm
                 )
                 
                 if not is_valid:
@@ -436,9 +467,8 @@ def detect_collisions(
                 if cpa_dist <= horizontal_threshold_nm:
                     # Calculate vertical separation
                     min_vertical_sep = max(
-                        row1['Optimal_altitude_min'] - row2['Optimal_altitude_max'],
-                        row2['Optimal_altitude_min'] - row1['Optimal_altitude_max'],
-                        0  # Overlapping ranges have 0 separation
+                        abs(row1['chosen_altitude_ft'] - row2['chosen_altitude_ft']),
+                        abs(row2['chosen_altitude_ft'] - row1['chosen_altitude_ft']),
                     )
                                         
                     # Only add if both horizontal AND vertical thresholds violated
@@ -459,6 +489,8 @@ def detect_collisions(
                             'to_2': row2['to'],
                             'time_overlap_start': overlap_start,
                             'time_overlap_end': overlap_end,
+                            'distance_threshold_cross_time_start': pd.Timestamp.fromtimestamp(interval_start) if interval_start else None,
+                            'distance_threshold_cross_time_end': pd.Timestamp.fromtimestamp(interval_end) if interval_end else None,
                             'cpa_time': pd.Timestamp.fromtimestamp(cpa_time),
                             'cpa_distance_nm': round(cpa_dist, 3),
                             'min_vertical_separation_ft': round(min_vertical_sep, 0),
@@ -474,7 +506,6 @@ def detect_collisions(
         if len(collisions_df) > 0:
             collisions_df = collisions_df.sort_values('cpa_distance_nm').reset_index(drop=True)
         
-        
         return collisions_df
         
     except Exception as e:
@@ -483,43 +514,66 @@ def detect_collisions(
         traceback.print_exc()
         return pd.DataFrame()
 
-if __name__ == "__main__":
-    data_file = 'canadian_flights_1000.json'
-    df = load_data(data_file)
-
-    df = map_to_standard_formats(df)
-    waypoints_df = create_flight_waypoints(df)
-    lookup_df = create_flight_lookup(df)
-
-    altitude_df, speed_df = create_flight_constraints(lookup_df)
-    waypoints_df = calculate_travel_distances(waypoints_df)
-    
-    flight_durations = calculate_flight_duration(waypoints_df, lookup_df, speed_df)
-    flgith_arrival_times = calculate_waypoint_times(flight_durations, lookup_df)
-    
-    collision_risks = detect_collisions(
-        flgith_arrival_times,
-        altitude_df
-    )
+def get_ecef_from_coord(coord_str, altitude_ft):
     """
-    print("Flight DataFrame:")
-    print(df)
-    print("\nFlight Waypoints:")
-    print(waypoints_df)
-    print("\nFlight Lookup:")
-    print(lookup_df)
-    print("\nAltitude Constraints:")
-    print(altitude_df)
-    print("\nSpeed Constraints:")
-    print(speed_df)
-    print("\nFlight Durations:")
-    print(flight_durations)
-    print("\nFlight Arrival Times:")
-    print(flgith_arrival_times)
+    Convert a coordinate string (e.g., '45.0N/75.0W') and altitude to ECEF.
     """
-    print("\nCollision Risks:")
-    print(collision_risks)
-    
-    
-    
+    lat_str, lon_str = coord_str.split('/')
+    def parse_coord(val):
+        v = float(val[:-1])
+        return v if val[-1] in 'NE' else -v
+    lat = np.radians(parse_coord(lat_str))
+    lon = np.radians(parse_coord(lon_str))
+    return get_3d_position(lat, lon, altitude_ft)
 
+data_file = 'canadian_flights_1000.json'
+df = load_data(data_file)
+
+df = map_to_standard_formats(df)
+waypoints_df = create_flight_waypoints(df)
+lookup_df = create_flight_lookup(df)
+
+altitude_df, speed_df = create_flight_constraints(lookup_df)
+waypoints_df = calculate_travel_distances(waypoints_df)
+
+flight_durations = calculate_flight_duration(waypoints_df, lookup_df, speed_df)
+flight_durations = calculate_altitude(flight_durations, lookup_df, altitude_df)
+flight_arrival_times = calculate_waypoint_times(flight_durations, lookup_df)
+
+# --- Compose the final DataFrame with requested columns ---
+
+# Merge in all required airplane/altitude/speed info
+final_df = flight_arrival_times.merge(
+    altitude_df[['Aircraft_Type', 'Optimal_altitude_min', 'Optimal_altitude_max']],
+    left_on='Plane_type', right_on='Aircraft_Type', how='left'
+).merge(
+    speed_df[['Aircraft_Type', 'Max_cruise_Speed_knots', 'Min_cruise_Speed_knots', 'Min_Speed_knots', 'Max_Speed_knots']],
+    left_on='Plane_type', right_on='Aircraft_Type', how='left',
+    suffixes=('', '_speed')
+)
+
+# Compute from_ECEF and to_ECEF using chosen_altitude_ft for each segment
+final_df['from_ECEF'] = final_df.apply(lambda row: get_ecef_from_coord(row['from'], row['chosen_altitude_ft']), axis=1)
+final_df['to_ECEF'] = final_df.apply(lambda row: get_ecef_from_coord(row['to'], row['chosen_altitude_ft']), axis=1)
+
+# Select and order the requested columns
+flight_arrival_times = final_df[
+    [
+        'segment_number',
+        'ACID',
+        'from_ECEF',
+        'to_ECEF',
+        'travel_distance_nm',
+        'Min_altitude_ft',
+        'Max_altitude_ft',
+        'Optimal_altitude_min',
+        'Optimal_altitude_max',
+        'Max_cruise_Speed_knots',
+        'Min_cruise_Speed_knots',
+        'Min_Speed_knots',
+        'Max_Speed_knots',
+        'estimated_departure_time',
+        'estimated_arrival_time',
+        'chosen_altitude_ft'
+    ]
+]

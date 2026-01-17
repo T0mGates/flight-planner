@@ -42,6 +42,13 @@ def create_flight_constraints(df):
                 'Optimal_altitude_min': 33000,
                 'Optimal_altitude_max': 37000
             },
+            {
+                'Aircraft_Type': 'A220',
+                'Min_altitude_ft': 28000,
+                'Max_altitude_ft': 39000,
+                'Optimal_altitude_min': 33000,
+                'Optimal_altitude_max': 37000
+            },
             # Wide-body
             {
                 'Aircraft_Type': '787',
