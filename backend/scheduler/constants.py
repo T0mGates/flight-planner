@@ -43,3 +43,6 @@ PLANE_TYPE_MAP = {
     'Boeing 757-200F': '757F',
     'Airbus A300-600F': 'A300F'
 }
+
+EARTH_RADIUS_NM = 3440.065
+FEET_TO_NM = 1 / 6076.12

@@ -8,83 +8,83 @@ def create_flight_constraints(df):
             # Regional
             {
                 'Aircraft_Type': 'Dash 8',
-                'Min_Altitude_ft': 22000,
-                'Max_Altitude_ft': 28000,
-                'Optimal_Altitude_min': 24000,
-                'Optimal_Altitude_max': 26000
+                'Min_altitude_ft': 22000,
+                'Max_altitude_ft': 28000,
+                'Optimal_altitude_min': 24000,
+                'Optimal_altitude_max': 26000
             },
             {
                 'Aircraft_Type': 'E195',
-                'Min_Altitude_ft': 22000,
-                'Max_Altitude_ft': 28000,
-                'Optimal_Altitude_min': 24000,
-                'Optimal_Altitude_max': 26000
+                'Min_altitude_ft': 22000,
+                'Max_altitude_ft': 28000,
+                'Optimal_altitude_min': 24000,
+                'Optimal_altitude_max': 26000
             },
             # Narrow-body
             {
                 'Aircraft_Type': '737',
-                'Min_Altitude_ft': 28000,
-                'Max_Altitude_ft': 39000,
-                'Optimal_Altitude_min': 33000,
-                'Optimal_Altitude_max': 37000
+                'Min_altitude_ft': 28000,
+                'Max_altitude_ft': 39000,
+                'Optimal_altitude_min': 33000,
+                'Optimal_altitude_max': 37000
             },
             {
                 'Aircraft_Type': 'A320',
-                'Min_Altitude_ft': 28000,
-                'Max_Altitude_ft': 39000,
-                'Optimal_Altitude_min': 33000,
-                'Optimal_Altitude_max': 37000
+                'Min_altitude_ft': 28000,
+                'Max_altitude_ft': 39000,
+                'Optimal_altitude_min': 33000,
+                'Optimal_altitude_max': 37000
             },
             {
                 'Aircraft_Type': 'A321',
-                'Min_Altitude_ft': 28000,
-                'Max_Altitude_ft': 39000,
-                'Optimal_Altitude_min': 33000,
-                'Optimal_Altitude_max': 37000
+                'Min_altitude_ft': 28000,
+                'Max_altitude_ft': 39000,
+                'Optimal_altitude_min': 33000,
+                'Optimal_altitude_max': 37000
             },
             # Wide-body
             {
                 'Aircraft_Type': '787',
-                'Min_Altitude_ft': 31000,
-                'Max_Altitude_ft': 43000,
-                'Optimal_Altitude_min': 37000,
-                'Optimal_Altitude_max': 41000
+                'Min_altitude_ft': 31000,
+                'Max_altitude_ft': 43000,
+                'Optimal_altitude_min': 37000,
+                'Optimal_altitude_max': 41000
             },
             {
                 'Aircraft_Type': '777',
-                'Min_Altitude_ft': 31000,
-                'Max_Altitude_ft': 43000,
-                'Optimal_Altitude_min': 37000,
-                'Optimal_Altitude_max': 41000
+                'Min_altitude_ft': 31000,
+                'Max_altitude_ft': 43000,
+                'Optimal_altitude_min': 37000,
+                'Optimal_altitude_max': 41000
             },
             {
                 'Aircraft_Type': 'A330',
-                'Min_Altitude_ft': 31000,
-                'Max_Altitude_ft': 43000,
-                'Optimal_Altitude_min': 37000,
-                'Optimal_Altitude_max': 41000
+                'Min_altitude_ft': 31000,
+                'Max_altitude_ft': 43000,
+                'Optimal_altitude_min': 37000,
+                'Optimal_altitude_max': 41000
             },
             # Cargo
             {
                 'Aircraft_Type': '767F',
-                'Min_Altitude_ft': 28000,
-                'Max_Altitude_ft': 41000,
-                'Optimal_Altitude_min': 35000,
-                'Optimal_Altitude_max': 39000
+                'Min_altitude_ft': 28000,
+                'Max_altitude_ft': 41000,
+                'Optimal_altitude_min': 35000,
+                'Optimal_altitude_max': 39000
             },
             {
                 'Aircraft_Type': '757F',
-                'Min_Altitude_ft': 28000,
-                'Max_Altitude_ft': 41000,
-                'Optimal_Altitude_min': 35000,
-                'Optimal_Altitude_max': 39000
+                'Min_altitude_ft': 28000,
+                'Max_altitude_ft': 41000,
+                'Optimal_altitude_min': 35000,
+                'Optimal_altitude_max': 39000
             },
             {
                 'Aircraft_Type': 'A300F',
-                'Min_Altitude_ft': 28000,
-                'Max_Altitude_ft': 41000,
-                'Optimal_Altitude_min': 35000,
-                'Optimal_Altitude_max': 39000
+                'Min_altitude_ft': 28000,
+                'Max_altitude_ft': 41000,
+                'Optimal_altitude_min': 35000,
+                'Optimal_altitude_max': 39000
             }
         ]
         altitude_df = pd.DataFrame(altitude_constraints)
