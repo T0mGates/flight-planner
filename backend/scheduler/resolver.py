@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 from collections import defaultdict
 
+from backend.scheduler.data_loader import generate_flight_schedule
+
 # --- MODULE 1: GEOMETRY ENGINE ---
 class GeometryEngine:
     """
@@ -10,8 +12,8 @@ class GeometryEngine:
     """
     @staticmethod
     def get_segment_cpa(s1, s2, d1, a1, d2, a2, min_sep):
-        # 1. Vertical Check: If altitudes differ by >= 1000ft, they are safe.
-        if abs((s1['alt_orig'] + a1) - (s2['alt_orig'] + a2)) >= 1000:
+        # 1. Vertical Check: If altitudes differ by >= 2000ft, they are safe.
+        if abs((s1['alt_orig'] + a1) - (s2['alt_orig'] + a2)) >= 2000:
             return 999.0
             
         # 2. Time Window Check: Find the overlapping time interval.
@@ -110,17 +112,25 @@ class CostDriven4DResolver:
         self.maneuvers = [(0, 300), (0, 600), (2000, 0), (-2000, 0), (2000, 300), (-2000, 300)]
         self.larger_maneuvers = [(0, 1800), (0, 3600), (4000, 0), (6000, 0), (-4000, 0), (-6000, 0)]
 
-    def resolve(self, df, iterations=30):
+    def resolve(self, df, iterations=30, status={}):
+        
+        status['Message'] = "Starting parsing..."
+        status['Total Iterations'] = iterations
+        status['Current Iteration'] = 0
+        
         flights = FlightDataParser.to_internal_format(df)
         active_neighborhood = self.maneuvers.copy()
+        
+        status['Message'] = "Optimizing..."
 
-        for it in range(iterations):
+        for it in range(iterations):           
+            status['Current Iteration'] = it + 1
             # A. Update Temporal Neighbors (Broad Phase)
             # We look for ANY flight within 1 hour to prevent creating new collisions
             potential_nb = defaultdict(set)
             f_list = list(flights.values())
             collision_count = 0
-
+            
             for i in range(len(f_list)):
                 for j in range(i + 1, len(f_list)):
                     fa, fb = f_list[i], f_list[j]
@@ -167,8 +177,11 @@ class CostDriven4DResolver:
                 if best_move != (f['current_alt_shift'], f['current_delay']):
                     f['current_alt_shift'], f['current_delay'] = best_move
                     changes_made += 1
-
+                    
             print(f"Iteration {it+1:2d} | Active Conflicts: {collision_count:3d} | Changes: {changes_made:3d}")
+            status['Active Conflicts'] = collision_count
+            status['Total Conflicts'] = max(status.get('Total Conflicts', 0), collision_count)
+            status['Optimization Changes'] = status.get('Optimization Changes', 0) + changes_made
 
             # C. Escape Local Minima Logic
             if changes_made == 0 and collision_count > 0:
@@ -199,17 +212,25 @@ class CostDriven4DResolver:
             out.loc[mask, 'chosen_altitude_ft'] += f['current_alt_shift']
             dt = pd.Timedelta(seconds=f['current_delay'])
             out.loc[mask, 'estimated_departure_time'] += dt
-            out.loc[mask, 'estimated_arrival_time'] += dt
+            out.loc[mask, 'estimated_arrival_time'] += dt        
+
+        out['knots'] = out['travel_distance_nm'] / ((out['estimated_arrival_time'] - out['estimated_departure_time']).dt.total_seconds() / 3600)
+        out.drop(columns=['from_ECEF', 'to_ECEF', 'Min_altitude_ft', 'Max_altitude_ft',
+                          'Optimal_altitude_min', 'Optimal_altitude_max',
+                          'Min_cruise_Speed_knots', 'Max_cruise_Speed_knots',
+                          'travel_distance_nm', 'Min_Speed_knots', 'Max_Speed_knots'], inplace=True)
+ 
         return out
     
-if __name__ == "__main__":
-    from backend.scheduler.main import flight_arrival_times
+if __name__ == "__main__":    
+    # Load flight schedule
+    flight_arrival_times = generate_flight_schedule('canadian_flights_1000.json')
 
     # Initialize resolver
     resolver = CostDriven4DResolver(min_sep_nm=5.0)
 
     # Resolve conflicts
-    resolved_df = resolver.resolve(flight_arrival_times, iterations=30)
+    resolved_df = resolver.resolve(flight_arrival_times, iterations=2)
 
     # Display results
-    print(resolved_df[['ACID', 'estimated_departure_time', 'estimated_arrival_time', 'chosen_altitude_ft']])
+    print(resolved_df)
