@@ -32,7 +32,10 @@ def read_root():
 
 @app.get("/flights")
 def get_flights():
-    return database.get_flights()
+    flights = database.get_flights()
+    if flights is None:
+        return []
+    return {i: f for (i, f) in flights.items() if int(i) < 100}
 
 @app.post("/flights")
 def create_flight(flight: Flight):
