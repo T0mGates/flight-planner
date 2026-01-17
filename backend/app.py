@@ -35,8 +35,8 @@ def read_root():
 @app.get("/flights")
 async def get_flights(
     # These are (optional) query params
-    start:          Optional[datetime] = None, 
-    end:            Optional[datetime] = None,
+    start:          Optional[str] = None, 
+    end:            Optional[str] = None,
     origin:         Optional[str] = None,
     destination:    Optional[str] = None
 ):

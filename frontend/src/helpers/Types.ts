@@ -10,6 +10,7 @@ export interface Flight {
   aircraft_speed: number,
   altitude: number,
   passengers: number,
+  departure_time: number,
   id: number,
 };
 

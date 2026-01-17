@@ -57,31 +57,51 @@ export default function FlightInfoCard({ flights, selectedId, onSelect, filters,
                                     </span>
                                 </div>
 
-                {/* CONTENT BELOW */}
-                <div className="p-4 flex items-center justify-between">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-tighter mb-1 flex items-center gap-1">
-                      <PlaneTakeoff size={12} /> From
-                    </span>
-                    <span className="text-lg font-semibold text-zinc-100 leading-tight">
-                      {flight.departure_airport}
-                    </span>
-                  </div>
+                {/* Flight Card Contents */}
+                <div className="p-4 flex items-center justify-between gap-2">
+                    
+                    {/* Left: Departure Airport */}
+                    <div className="flex flex-col flex-1 items-start">
+                        <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-tighter mb-1 flex items-center gap-1">
+                            <PlaneTakeoff size={12} /> From
+                        </span>
+                        <span className="text-lg font-semibold text-zinc-100 leading-tight">
+                            {flight.departure_airport}
+                        </span>
+                    </div>
 
-                  <div className="flex flex-col items-center px-4">
-                    <span className="text-zinc-600 text-xl font-light">
-                      →
-                    </span>
-                  </div>
+                    {/* Middle: Arrow and Detailed Departure Info */}
+                    <div className="flex flex-col items-center justify-center min-w-30">
+                        <span className="text-zinc-700 text-xl font-light leading-none">→</span>
+                        
+                        <div className="mt-2 flex flex-col items-center gap-0.5">
+                            <span className="text-[9px] text-zinc-600 uppercase font-bold tracking-widest">Departure</span>
+                            
+                            {/* Date and Time Stack */}
+                            <div className="flex flex-col items-center bg-blue-500/5 border border-blue-500/10 rounded px-2 py-1">
+                                <span className="text-[11px] font-mono font-bold text-blue-400 leading-none">
+                                    {typeof flight.departure_time === 'number' 
+                                        ? new Date(flight.departure_time * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+                                        : '00:00'}
+                                </span>
+                                <span className="text-[9px] font-mono text-zinc-500 mt-0.5 leading-none">
+                                    {typeof flight.departure_time === 'number' 
+                                        ? new Date(flight.departure_time * 1000).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
+                                        : '---'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
 
-                  <div className="flex flex-col text-right">
-                    <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-tighter mb-1 flex items-center justify-end gap-1">
-                      To <PlaneLanding size={12} />
-                    </span>
-                    <span className="text-lg font-semibold text-zinc-100 leading-tight">
-                      {flight.arrival_airport}
-                    </span>
-                  </div>
+                    {/* Right: Arrival Airport */}
+                    <div className="flex flex-col flex-1 items-end">
+                        <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-tighter mb-1 flex items-center justify-end gap-1">
+                            To <PlaneLanding size={12} />
+                        </span>
+                        <span className="text-lg font-semibold text-zinc-100 leading-tight">
+                            {flight.arrival_airport}
+                        </span>
+                    </div>
                 </div>
               </div>
             ))}

@@ -1,7 +1,9 @@
+from datetime               import  datetime, timezone
+
 from backend.models         import  Flight, Airport, FlightFilters, raw_flight_data_to_flight_model
 from backend.scheduler.main import  load_data
 from backend.scheduler      import  constants
-from backend.logging.logger import get_logger
+from backend.logging.logger import  get_logger
 
 log = get_logger()
 
@@ -37,23 +39,75 @@ class Database():
     def get_flights(cls, filters: FlightFilters)->dict[int, Flight]:
         to_ret = {}
         for flight in cls._flight_data.values():
-            to_include = True
-
-            if filters.destination:
-                if flight["arrival_airport"] != filters.destination:
-                    to_include = False
-
-            if filters.origin:
-                if flight["departure_airport"] != filters.origin:
-                    to_include = False
-
-            if to_include:
+            if(cls.include_flight_based_off_filter(flight_id=flight["id"], filters=filters)):
                 to_ret[flight["id"]] = flight
 
             if len(to_ret.keys()) >= 100:
                 break
             
         return to_ret
+    
+    @classmethod
+    def include_flight_based_off_filter(cls, flight_id: int, filters: FlightFilters)->bool:
+        flight = cls._flight_data.get(flight_id, {})
+        if not flight:
+            return False
+
+        to_include = True
+
+        if filters.destination:
+            if flight["arrival_airport"] != filters.destination:
+                to_include = False
+
+        if filters.origin:
+            if flight["departure_airport"] != filters.origin:
+                to_include = False
+
+        # Save time if we can
+        if not to_include:
+            return to_include
+
+        start_filter     = None
+        end_filter       = None
+        
+        try:
+            start_filter     = datetime.fromisoformat(filters.start.replace('Z', '+00:00')) if filters.start else None
+        except:
+            pass
+
+        try:
+            end_filter       = datetime.fromisoformat(filters.end.replace('Z', '+00:00')) if filters.end else None
+        except:
+            pass
+
+        flight_departure    = None
+        try:
+            flight_departure = datetime.fromtimestamp(flight["departure_time"], tz=timezone.utc)
+        except:
+            pass
+        
+        if not flight_departure:
+            to_include = False
+
+        else:
+            # Three cases
+
+            # 1. Only start filter is active
+            if start_filter and not end_filter:
+                if flight_departure < start_filter:
+                    to_include = False
+
+            # 2. Only end filter is active
+            elif end_filter and not start_filter:
+                if flight_departure > end_filter:
+                    to_include = False
+            
+            # 3. Both filters are active
+            elif end_filter and start_filter:
+                if not (flight_departure >= start_filter and flight_departure <= end_filter):
+                    to_include = False
+
+        return to_include
     
     @classmethod
     def get_flight_by_id(cls, id: int)->Flight:

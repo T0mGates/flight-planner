@@ -13,13 +13,24 @@ import logo                                       from './assets/plane_logo.png'
 const fetchFlights = async ({ queryKey }: any): Promise<Record<string, Flight>> => {
   const [_key, filters] = queryKey;
   
-  const params = new URLSearchParams();
+  const params  = new URLSearchParams();
+
+  const toUTC   = (dateStr: string) => {
+    if(!dateStr){
+      return null;
+    }
+    // Converts "2026-05-03T07:00" (Local) -> "2026-05-03T11:00:00.000Z" (UTC)
+    return new Date(dateStr).toISOString();
+  };
+
+  const startUTC  = toUTC(filters.startDateTime);
+  const endUTC    = toUTC(filters.endDateTime);
 
   // Only append if the value actually exists
-  if (filters.startDateTime) params.append("start",       `${filters.startDateTime}:00Z`);
-  if (filters.endDateTime)   params.append("end",         `${filters.endDateTime}:00Z`);
-  if (filters.origin)        params.append("origin",      filters.origin.toUpperCase());
-  if (filters.destination)   params.append("destination", filters.destination.toUpperCase());
+  if (startUTC)             params.append("start",        startUTC);
+  if (endUTC)               params.append("end",          endUTC);
+  if (filters.origin)       params.append("origin",       filters.origin.toUpperCase());
+  if (filters.destination)  params.append("destination",  filters.destination.toUpperCase());
 
   const response = await fetch(`http://localhost:8000/flights?${params.toString()}`);
   
@@ -28,7 +39,7 @@ const fetchFlights = async ({ queryKey }: any): Promise<Record<string, Flight>> 
 };
 
 const fetchAirports = async () => {
-  const response = await fetch('http://127.0.0.1:8000/airports');
+  const response = await fetch('http://localhost:8000/airports');
   if (!response.ok) throw new Error('Network response was not ok');
   return response.json();
 }

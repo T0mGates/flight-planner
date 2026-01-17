@@ -96,7 +96,7 @@ export default function FlightFiltersCard({ filters, setFilters, isFetching }: F
         {isFetching ? (
           <>
             <Loader2 size={16} className="animate-spin" />
-            Updating Monitor...
+            Updating Flights...
           </>
         ) : (
           <>
