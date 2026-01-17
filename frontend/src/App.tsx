@@ -89,13 +89,20 @@ function App() {
     enabled: !!selectedId,
   });
   
+  // If select the "old" id, DESELECT it
   const handleSelect = useCallback((id: number) => {
-    setSelectedId(id);
+    setSelectedId(prevId => (prevId === id ? null : id));
   }, []);
+
+  // Unselect the clicked ID if "apply filters" is clicked
+  const handleFilterChange = useCallback((newFilters: any) => {
+    setFilters(newFilters);
+    setSelectedId(null); // Deselects the flight
+}, []);
 
   return (
     <div className="relative w-screen h-screen">
-      <div className="absolute bottom-3 left-0 z-[1000] pointer-events-none select-none">
+      <div className="absolute bottom-3 left-0 z-1000 pointer-events-none select-none">
         <img
           src={logo}
           alt="Flight Planner Logo"
@@ -103,7 +110,7 @@ function App() {
         />
       </div>
       <Map flights={Object.values(flightData ?? {})} airports={airportData ?? {}} onSelectFlight={handleSelect} />
-      <div className="absolute top-4 right-4 w-96 max-h-[calc(100vh-2rem)] z-1000 flex flex-col gap-4">
+      <div className="absolute top-4 right-4 w-96 h-[calc(100vh-2rem)] z-1000 flex flex-col gap-4">
         <AnimatePresence mode="popLayout">
           {selectedFlight && (
             <motion.div
@@ -121,14 +128,18 @@ function App() {
           )}
         </AnimatePresence>
         {/* We also wrap the card so it slides up/down smoothly when the panel above it changes */}
-        <motion.div layout transition={{ duration: 0.4, type: "spring", bounce: 0.2 }}>
+        <motion.div 
+          layout 
+          transition={{ duration: 0.4, type: "spring", bounce: 0.2 }}
+          className="flex-1 min-h-0 pointer-events-auto"
+        >
           <FlightInfoCard
             flights={Object.values(flightData ?? {})}
             filters={filters}
             isFetching={isFetchingFlights}
-            setFilters={setFilters}
+            setFilters={handleFilterChange}
             selectedId={selectedId ?? undefined}
-            onSelect={(id: number) => setSelectedId(id)}
+            onSelect={handleSelect}
           />
         </motion.div>
       </div>

@@ -2,8 +2,7 @@ import { type Flight, type FlightFilters }  from "../../helpers/Types";
 import FlightFiltersCard                    from "./FlightFiltersCard";
 import { Card, 
          CardContent, 
-         CardHeader, 
-         CardTitle
+         CardHeader
         }                                   from "@/components/ui/card";
 import { ScrollArea }                       from "@/components/ui/scroll-area";
 import { PlaneTakeoff, PlaneLanding, Hash } from "lucide-react";
@@ -19,24 +18,19 @@ interface FlightInfoCardProps {
 
 export default function FlightInfoCard({ flights, selectedId, onSelect, filters, setFilters, isFetching }: FlightInfoCardProps) {
     return (
-        <Card className="w-full shadow-2xl border-zinc-800 bg-zinc-950/90 backdrop-blur text-zinc-50">
+        // Added h-full and flex flex-col
+        <Card className="w-full h-full flex flex-col shadow-2xl border-zinc-800 bg-zinc-950/90 backdrop-blur text-zinc-50 overflow-hidden">
+            
+            {/* Header stays at the top */}
+            <CardHeader className="pb-1 border-b border-zinc-900 shrink-0">
+                <FlightFiltersCard filters={filters} setFilters={setFilters} isFetching={isFetching} />
+            </CardHeader>
 
-      {/* Upper title portion of the card */}
-      <CardHeader className="pb-3 border-b border-zinc-900">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-xl font-bold tracking-tight text-white">
-            Live Monitor
-          </CardTitle>
-          {/* Blinking Indicator thingy */}
-          <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" title="Live" />
-        </div>
-        {/* Pass the props down to the inner card */}
-        <FlightFiltersCard filters={filters} setFilters={setFilters} isFetching={isFetching} />
-      </CardHeader>
-
-            <CardContent className="pt-4 bg-transparent">
-                <ScrollArea className="h-125 pr-4">
-                    <div className="flex flex-col gap-4">
+            {/* Content fills the remaining space */}
+            <CardContent className="flex-1 min-h-0 p-0 pt-4 bg-transparent">
+                <ScrollArea className="h-full w-full">
+                    {/* Add horizontal padding here since p-0 was used on CardContent */}
+                    <div className="flex flex-col gap-4 px-4 pb-4">
                         {flights.map((flight) => (
                             <div
                                 key={flight.id} 
@@ -81,12 +75,20 @@ export default function FlightInfoCard({ flights, selectedId, onSelect, filters,
                             <div className="flex flex-col items-center bg-blue-500/5 border border-blue-500/10 rounded px-2 py-1">
                                 <span className="text-[11px] font-mono font-bold text-blue-400 leading-none">
                                     {typeof flight.departure_time === 'number' 
-                                        ? new Date(flight.departure_time * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+                                        ? new Date(flight.departure_time * 1000).toLocaleTimeString([], { 
+                                            hour: '2-digit', 
+                                            minute: '2-digit', 
+                                            hour12: true 
+                                          })
                                         : '00:00'}
                                 </span>
                                 <span className="text-[9px] font-mono text-zinc-500 mt-0.5 leading-none">
                                     {typeof flight.departure_time === 'number' 
-                                        ? new Date(flight.departure_time * 1000).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
+                                        ? new Date(flight.departure_time * 1000).toLocaleDateString([], { 
+                                            month: 'short', 
+                                            day: 'numeric', 
+                                            year: 'numeric' 
+                                          })
                                         : '---'}
                                 </span>
                             </div>
