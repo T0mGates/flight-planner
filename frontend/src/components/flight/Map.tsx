@@ -2,8 +2,8 @@ import { Fragment } from 'react'
 import { MapContainer, TileLayer, Popup, Marker, Polyline } from 'react-leaflet'
 import { LatLng } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import type { Flight } from './Types.ts'
-import { parseLatLong } from './Types.ts'
+import type { Flight } from '../../helpers/Types.ts'
+import { parseLatLong } from '../../helpers/Types.ts'
 
 
 export default function Map({ flights }: { flights: Flight[] }) {
