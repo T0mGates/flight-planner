@@ -1,12 +1,13 @@
 import './App.css';
 
-import { useState, useEffect }      from 'react';
-import { motion, AnimatePresence }  from "framer-motion";
-import { useQuery }                 from '@tanstack/react-query';
-import Map                          from './components/flight/Map.tsx';
-import FlightInfoCard               from './components/flight/FlightInfoCard.tsx';
-import FlightDetailPanel            from './components/flight/FlightDetailPanel.tsx';
-import { type Flight }              from "./helpers/Types";
+import { useState, useEffect, useCallback }       from 'react';
+import { motion, AnimatePresence }                from "framer-motion";
+import { useQuery }                               from '@tanstack/react-query';
+import Map                                        from './components/flight/Map.tsx';
+import FlightInfoCard                             from './components/flight/FlightInfoCard.tsx';
+import FlightDetailPanel                          from './components/flight/FlightDetailPanel.tsx';
+import { type Flight }                            from "./helpers/Types";
+import logo                                       from './assets/plane_logo.png';
 
 // Fetch with filters
 const fetchFlights = async ({ queryKey }: any): Promise<Record<string, Flight>> => {
@@ -76,10 +77,21 @@ function App() {
     queryFn: () => fetchFlightById(selectedId),
     enabled: !!selectedId,
   });
+  
+  const handleSelect = useCallback((id: number) => {
+    setSelectedId(id);
+  }, []);
 
   return (
     <div className="relative w-screen h-screen">
-      <Map flights={Object.values(flightData ?? {})} airports={airportData ?? {}} />
+      <div className="absolute bottom-3 left-0 z-[1000] pointer-events-none select-none">
+        <img
+          src={logo}
+          alt="Flight Planner Logo"
+          className="h-30 w-auto opacity-80 grayscale contrast-125"
+        />
+      </div>
+      <Map flights={Object.values(flightData ?? {})} airports={airportData ?? {}} onSelectFlight={handleSelect} />
       <div className="absolute top-4 right-4 w-96 max-h-[calc(100vh-2rem)] z-1000 flex flex-col gap-4">
         <AnimatePresence mode="popLayout">
           {selectedFlight && (

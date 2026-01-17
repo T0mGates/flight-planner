@@ -3,6 +3,7 @@ import { parseLatLong, parseSingleLatLong } from '@/helpers/Types.ts';
 import type { Flight, AirportDict } from '@/helpers/Types.ts';
 import { Popup, Polyline } from "react-leaflet";
 import PlaneMarker from './PlaneMarker';
+import L from 'leaflet';
 
 // Make neon colours with greater variety
 function generateNeonColors(count: number) {
@@ -44,12 +45,15 @@ function airportPosition(airport: string, airports: AirportDict) {
   return parseSingleLatLong(airports[airport].latlon);
 }
 
-// Create all required details on the map related to a particular flight
-export default function FlightMapElements({ flight, airports }: { flight: Flight, airports: AirportDict }) {
-  // Just the positions included in the plane's route
+export default function FlightMapElements({ flight, airports, onSelect }:
+  { flight: Flight, airports: AirportDict, onSelect: (id: number) => void }) {
+
   const positions: LatLng[] = parseLatLong(flight.route);
-  // Include airports in the path for a plane
-  const lineElements: LatLng[] = [airportPosition(flight.departure_airport, airports), ...positions, airportPosition(flight.arrival_airport, airports)];
+  const lineElements: LatLng[] = [
+    airportPosition(flight.departure_airport, airports),
+    ...positions,
+    airportPosition(flight.arrival_airport, airports)
+  ];
   const colour = getFlightColour(flight.id);
   const heading = positions.length > 1 ? calculateHeading(positions[0], positions[1]) : 0;
 
@@ -57,7 +61,20 @@ export default function FlightMapElements({ flight, airports }: { flight: Flight
     <>
       {positions.length > 0 &&
         <>
-          <Polyline positions={lineElements} pathOptions={{ color: colour, weight: 2.5, opacity: 0.3, dashArray: '10, 10', lineCap: 'round', lineJoin: 'round' }}>
+          {/* Invisible, thick Polyline for easier clicking */}
+          <Polyline
+            positions={lineElements}
+            pathOptions={{
+              color: 'transparent',
+              weight: 20,
+            }}
+            eventHandlers={{
+              click: (e) => {
+                onSelect(flight.id);
+                L.DomEvent.stopPropagation(e);
+              },
+            }}
+          >
             <Popup>
               <div className="flex justify-between items-center mb-2">
                 <div className="text-lg font-bold tracking-tight text-white">
@@ -70,7 +87,23 @@ export default function FlightMapElements({ flight, airports }: { flight: Flight
               </div>
             </Popup>
           </Polyline>
-          <PlaneMarker position={positions[0]} heading={heading} />
+
+          {/* 2. THE VISUAL LINE: The thin, elegant dashed line */}
+          <Polyline
+            positions={lineElements}
+            pathOptions={{
+              color: colour,
+              weight: 2.5,
+              opacity: 0.3,
+              dashArray: '10, 10',
+              lineCap: 'round',
+              lineJoin: 'round',
+              interactive: false // Clicks pass through to the 'Hit Area' below
+            }}
+          />
+
+          <PlaneMarker position={positions[0]} heading={heading}
+          />
         </>
       }
     </>

@@ -5,7 +5,15 @@ import FlightMapElements from "./FlightMapElements.tsx"
 import AirportMapElements from './AirportMapElements.tsx';
 
 
-export default function Map({ flights, airports }: { flights: Flight[], airports: AirportDict }) {
+export default function Map({
+  flights,
+  airports,
+  onSelectFlight
+}: {
+  flights: Flight[],
+  airports: AirportDict,
+  onSelectFlight: (id: number) => void
+}) {
   return (
     <MapContainer center={[56.1304, -106.3468]} zoom={4} scrollWheelZoom={true} className="w-full h-full">
       <TileLayer
@@ -13,7 +21,14 @@ export default function Map({ flights, airports }: { flights: Flight[], airports
         attribution='&copy; OpenStreetMap contributors &copy; CARTO'
       />
       {flights.map(
-        (flight) => <FlightMapElements key={flight.id} flight={flight} airports={airports}></FlightMapElements>
+        (flight) => (
+          <FlightMapElements
+            key={flight.id}
+            flight={flight}
+            airports={airports}
+            onSelect={onSelectFlight}
+          />
+        )
       )}
       {Object.entries(airports).map(
         ([code, airport]) => <AirportMapElements key={code} code={code} airport={airport}></AirportMapElements>

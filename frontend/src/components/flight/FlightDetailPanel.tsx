@@ -14,7 +14,7 @@ export default function FlightDetailPanel({ flight, onClose }: FlightDetailPanel
 
             <button
                 onClick={onClose}
-                className="absolute top-2 right-2 p-1 text-zinc-600 hover:text-zinc-300 hover:bg-white/5 rounded-full transition-all outline-none cursor-pointer"
+                className="absolute top-2 right-2 p-1 text-zinc-600 !bg-transparent hover:text-zinc-300 hover:bg-white/5 rounded-full transition-all outline-none cursor-pointer"
             >
                 <X size={16} strokeWidth={2} />
             </button>
