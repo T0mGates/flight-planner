@@ -5,12 +5,13 @@ export interface Flight
     departure_airport   : string,
     arrival_airport     : string,
     ACID                : string,
-    Plane_type          : string,
+    plane_type          : string,
+    route               : string,
     is_cargo            : boolean,
+    aircraft_speed      : number,
+    altitude            : number,
     passengers          : number,
     id                  : number,
-    route               : string,
-    aircraft_speed      : string
 }
 
 class RouteParseError extends Error {

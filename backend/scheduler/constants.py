@@ -13,6 +13,21 @@ TRANSLATION = {
     "CYXE": "52.17N/106.70W"
 }
 
+AIRPORT_NAME_MAP = {
+    "CYYZ": "Toronto Pearson International Airport",
+    "CYVR": "Vancouver International Airport",
+    "CYUL": "Montréal-Trudeau International Airport",
+    "CYYC": "Calgary International Airport",
+    "CYOW": "Ottawa Macdonald-Cartier International Airport",
+    "CYWG": "Winnipeg James Armstrong Richardson International Airport",
+    "CYHZ": "Halifax Stanfield International Airport",
+    "CYEG": "Edmonton International Airport",
+    "CYQB": "Québec City Jean Lesage International Airport",
+    "CYYJ": "Victoria International Airport",
+    "CYYT": "St. John's International Airport",
+    "CYXE": "Saskatoon John G. Diefenbaker International Airport"
+}
+
 PLANE_TYPE_MAP = {
     'Dash 8-400': 'Dash 8',
     'Embraer E195-E2': 'E195',

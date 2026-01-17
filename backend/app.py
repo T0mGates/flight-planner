@@ -5,7 +5,6 @@ from fastapi.middleware.cors            import CORSMiddleware
 from backend.sentry.error_monitoring    import init_fast_api_sentry
 from backend.logging.logger             import get_logger
 
-
 init_fast_api_sentry()
 database    = db.Database
 database.init()
@@ -55,3 +54,20 @@ def get_flight_by_id(flight_id: int):
         )
     
     return {"flight": flight}
+
+@app.get("/airports")
+def get_all_airport_details():
+    return database.get_all_airports_details()
+
+@app.get("/airports/{iata_code}")
+def get_airport_details_by_iata_code(iata_code: str):
+    airport_details = database.get_airport_details(iata_code=iata_code)
+
+    if not airport_details:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Airport with IATA code: {iata_code} does not exist"
+        )
+    
+    return airport_details
+    

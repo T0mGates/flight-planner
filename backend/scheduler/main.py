@@ -42,7 +42,7 @@ def map_to_standard_formats(df: pd.DataFrame) -> pd.DataFrame:
     try:
         df['arrival_airport'] = df['arrival_airport'].map(TRANSLATION)
         df['departure_airport'] = df['departure_airport'].map(TRANSLATION)
-        df['Plane_type'] = df['Plane_type'].map(PLANE_TYPE_MAP)
+        df['plane_type'] = df['plane_type'].map(PLANE_TYPE_MAP)
         return df
     except Exception as e:
         print(f"An error occurred while transforming the airports: {e}")
@@ -92,7 +92,7 @@ def create_flight_lookup(df: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: Lookup DataFrame with static flight attributes.
     """
     try:
-        lookup_df = df[['ACID', 'Plane_type', 'departure_time', 'is_cargo', 'passengers']].drop_duplicates().reset_index(drop=True)
+        lookup_df = df[['ACID', 'plane_type', 'departure_time', 'is_cargo', 'passengers']].drop_duplicates().reset_index(drop=True)
         return lookup_df
     except Exception as e:
         print(f"An error occurred while creating flight lookup table: {e}")
