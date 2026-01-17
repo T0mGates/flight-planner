@@ -1,8 +1,21 @@
-from models import Flight
+import              json
+
+from models import  Flight
 
 class Database():
     _data: dict[int, Flight]    = {}
     _next_id                    = 1
+
+    @classmethod
+    def init(cls):
+        # TODO (noah)
+        with open("../data.json", "r") as f:
+            flight_data = json.load(f)
+
+        for flight in flight_data:
+            flight["id"]            = cls._next_id
+            cls._data[cls._next_id] = flight
+            cls._next_id            += 1
 
     @classmethod
     def add_flight(cls, flight: Flight)->bool:

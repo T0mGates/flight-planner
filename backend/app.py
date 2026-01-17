@@ -3,6 +3,7 @@ from models     import Flight
 from database   import db
 
 database    = db.Database
+database.init()
 
 app         = FastAPI()
 
