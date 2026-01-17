@@ -1,39 +1,39 @@
 import './App.css';
 
-import { useState, useEffect, useCallback }       from 'react';
-import { motion, AnimatePresence }                from "framer-motion";
-import { useQuery }                               from '@tanstack/react-query';
-import Map                                        from './components/flight/Map.tsx';
-import FlightInfoCard                             from './components/flight/FlightInfoCard.tsx';
-import FlightDetailPanel                          from './components/flight/FlightDetailPanel.tsx';
-import { type Flight }                            from "./helpers/Types";
-import logo                                       from './assets/plane_logo.png';
+import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from "framer-motion";
+import { useQuery } from '@tanstack/react-query';
+import Map from './components/flight/Map.tsx';
+import FlightInfoCard from './components/flight/FlightInfoCard.tsx';
+import FlightDetailPanel from './components/flight/FlightDetailPanel.tsx';
+import { type Flight } from "./helpers/Types";
+import TimeControls from './components/flight/TimeControls.tsx';
 
 // Fetch with filters
 const fetchFlights = async ({ queryKey }: any): Promise<Record<string, Flight>> => {
   const [_key, filters] = queryKey;
-  
-  const params  = new URLSearchParams();
 
-  const toUTC   = (dateStr: string) => {
-    if(!dateStr){
+  const params = new URLSearchParams();
+
+  const toUTC = (dateStr: string) => {
+    if (!dateStr) {
       return null;
     }
     // Converts "2026-05-03T07:00" (Local) -> "2026-05-03T11:00:00.000Z" (UTC)
     return new Date(dateStr).toISOString();
   };
 
-  const startUTC  = toUTC(filters.startDateTime);
-  const endUTC    = toUTC(filters.endDateTime);
+  const startUTC = toUTC(filters.startDateTime);
+  const endUTC = toUTC(filters.endDateTime);
 
   // Only append if the value actually exists
-  if (startUTC)             params.append("start",        startUTC);
-  if (endUTC)               params.append("end",          endUTC);
-  if (filters.origin)       params.append("origin",       filters.origin.toUpperCase());
-  if (filters.destination)  params.append("destination",  filters.destination.toUpperCase());
+  if (startUTC) params.append("start", startUTC);
+  if (endUTC) params.append("end", endUTC);
+  if (filters.origin) params.append("origin", filters.origin.toUpperCase());
+  if (filters.destination) params.append("destination", filters.destination.toUpperCase());
 
   const response = await fetch(`http://localhost:8000/flights?${params.toString()}`);
-  
+
   if (!response.ok) throw new Error('Failed to fetch flight data');
   return response.json();
 };
@@ -52,13 +52,33 @@ const fetchFlightById = async (id: number | null): Promise<Flight | null> => {
   return data.flight;
 };
 
+function getFirstLastFlight(flights: Flight[], first: Boolean) {
+  if (flights == null || flights == undefined || flights.length == 0) {
+    return 0;
+  }
+  let earliest = flights[0];
+  for (const flight of flights) {
+    if (first) {
+      if (flight.departure_time < earliest.departure_time) {
+        earliest = flight;
+      }
+    }
+    else {
+      if (flight.departure_time > earliest.departure_time) {
+        earliest = flight;
+      }
+    }
+  }
+  return earliest.departure_time;
+}
+
 function App() {
   // DEFAULT FILTERS
   const [filters, setFilters] = useState({
-    startDateTime : "",
-    endDateTime   : "",
-    origin        : "",
-    destination   : ""
+    startDateTime: "",
+    endDateTime: "",
+    origin: "",
+    destination: ""
   });
 
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -88,20 +108,22 @@ function App() {
     queryFn: () => fetchFlightById(selectedId),
     enabled: !!selectedId,
   });
-  
+
   const handleSelect = useCallback((id: number) => {
     setSelectedId(id);
   }, []);
 
+  // Need start and end times for all flights, for all flights that are loaded
+  // TODO: May need to change this to sensibly set the currentDisplayTime whenver the flights change
+  const [currentDisplayTime, setCurrentDisplayTime] = useState(0);
+  const earliestFlightTime = getFirstLastFlight(Object.values(flightData ?? {}), true);
+  const latestFlightTime = getFirstLastFlight(Object.values(flightData ?? {}), false);
+
+  const logAndSetDisplayTime = (value: number) => { console.log("new time", value); setCurrentDisplayTime(value); }
   return (
     <div className="relative w-screen h-screen">
-      <div className="absolute bottom-3 left-0 z-[1000] pointer-events-none select-none">
-        <img
-          src={logo}
-          alt="Flight Planner Logo"
-          className="h-30 w-auto opacity-80 grayscale contrast-125"
-        />
-      </div>
+      {/* Controls for moving simulating planes moving */}
+      <TimeControls startTimeSeconds={earliestFlightTime} endTimeSeconds={latestFlightTime} currentTimeSeconds={currentDisplayTime} setCurrentTimeSeconds={logAndSetDisplayTime}></TimeControls>
       <Map flights={Object.values(flightData ?? {})} airports={airportData ?? {}} onSelectFlight={handleSelect} />
       <div className="absolute top-4 right-4 w-96 max-h-[calc(100vh-2rem)] z-1000 flex flex-col gap-4">
         <AnimatePresence mode="popLayout">

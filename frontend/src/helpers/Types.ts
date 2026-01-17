@@ -24,10 +24,10 @@ export type AirportDict = {
 }
 
 export interface FlightFilters {
-  startDateTime       : string; // ISO String: "2026-05-03T07:00"
-  endDateTime         : string;   // ISO String: "2026-05-03T16:00"
-  origin              : string;
-  destination         : string;
+  startDateTime: string; // ISO String: "2026-05-03T07:00"
+  endDateTime: string;   // ISO String: "2026-05-03T16:00"
+  origin: string;
+  destination: string;
 }
 
 class RouteParseError extends Error {

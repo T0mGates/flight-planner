@@ -1,25 +1,26 @@
-import { type Flight, type FlightFilters }  from "../../helpers/Types";
-import FlightFiltersCard                    from "./FlightFiltersCard";
-import { Card, 
-         CardContent, 
-         CardHeader, 
-         CardTitle
-        }                                   from "@/components/ui/card";
-import { ScrollArea }                       from "@/components/ui/scroll-area";
+import { type Flight, type FlightFilters } from "../../helpers/Types";
+import FlightFiltersCard from "./FlightFiltersCard";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { PlaneTakeoff, PlaneLanding, Hash } from "lucide-react";
 
 interface FlightInfoCardProps {
-    flights     : Flight[];
-    selectedId? : number;
-    onSelect    : (id: number) => void;
-    filters     : FlightFilters;
-    setFilters  : (filters: FlightFilters) => void;
-    isFetching  : boolean;
+  flights: Flight[];
+  selectedId?: number;
+  onSelect: (id: number) => void;
+  filters: FlightFilters;
+  setFilters: (filters: FlightFilters) => void;
+  isFetching: boolean;
 }
 
 export default function FlightInfoCard({ flights, selectedId, onSelect, filters, setFilters, isFetching }: FlightInfoCardProps) {
-    return (
-        <Card className="w-full shadow-2xl border-zinc-800 bg-zinc-950/90 backdrop-blur text-zinc-50">
+  return (
+    <Card className="w-full shadow-2xl border-zinc-800 bg-zinc-950/90 backdrop-blur text-zinc-50">
 
       {/* Upper title portion of the card */}
       <CardHeader className="pb-3 border-b border-zinc-900">
@@ -34,74 +35,74 @@ export default function FlightInfoCard({ flights, selectedId, onSelect, filters,
         <FlightFiltersCard filters={filters} setFilters={setFilters} isFetching={isFetching} />
       </CardHeader>
 
-            <CardContent className="pt-4 bg-transparent">
-                <ScrollArea className="h-125 pr-4">
-                    <div className="flex flex-col gap-4">
-                        {flights.map((flight) => (
-                            <div
-                                key={flight.id} 
-                                onClick={() => onSelect(flight.id)}
-                                className={`flex flex-col rounded-xl border transition-all cursor-pointer overflow-hidden ${selectedId === flight.id
-                                        ? "border-blue-500 bg-blue-500/10 shadow-[0_0_15px_rgba(59,130,246,0.1)]"
-                                        : "border-zinc-800 bg-zinc-900/20 hover:border-zinc-500"
-                                    }`}
-                            >
-                        {/* ID BAR AT THE TOP */}
-                        <div className="bg-zinc-900/80 px-3 py-1.5 border-b border-zinc-800 flex items-center gap-2">
-                            <Hash size={10} className="text-blue-500" />
-                            <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-400">
-                                ACID: 
-                                <span className="text-blue-400">
-                                    {flight.ACID}
-                                </span>
-                                    </span>
-                                </div>
+      <CardContent className="pt-4 bg-transparent">
+        <ScrollArea className="h-125 pr-4">
+          <div className="flex flex-col gap-4">
+            {flights.map((flight) => (
+              <div
+                key={flight.id}
+                onClick={() => onSelect(flight.id)}
+                className={`flex flex-col rounded-xl border transition-all cursor-pointer overflow-hidden ${selectedId === flight.id
+                  ? "border-blue-500 bg-blue-500/10 shadow-[0_0_15px_rgba(59,130,246,0.1)]"
+                  : "border-zinc-800 bg-zinc-900/20 hover:border-zinc-500"
+                  }`}
+              >
+                {/* ID BAR AT THE TOP */}
+                <div className="bg-zinc-900/80 px-3 py-1.5 border-b border-zinc-800 flex items-center gap-2">
+                  <Hash size={10} className="text-blue-500" />
+                  <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-400">
+                    ACID:
+                    <span className="text-blue-400">
+                      {flight.ACID}
+                    </span>
+                  </span>
+                </div>
 
                 {/* Flight Card Contents */}
                 <div className="p-4 flex items-center justify-between gap-2">
-                    
-                    {/* Left: Departure Airport */}
-                    <div className="flex flex-col flex-1 items-start">
-                        <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-tighter mb-1 flex items-center gap-1">
-                            <PlaneTakeoff size={12} /> From
-                        </span>
-                        <span className="text-lg font-semibold text-zinc-100 leading-tight">
-                            {flight.departure_airport}
-                        </span>
-                    </div>
 
-                    {/* Middle: Arrow and Detailed Departure Info */}
-                    <div className="flex flex-col items-center justify-center min-w-30">
-                        <span className="text-zinc-700 text-xl font-light leading-none">→</span>
-                        
-                        <div className="mt-2 flex flex-col items-center gap-0.5">
-                            <span className="text-[9px] text-zinc-600 uppercase font-bold tracking-widest">Departure</span>
-                            
-                            {/* Date and Time Stack */}
-                            <div className="flex flex-col items-center bg-blue-500/5 border border-blue-500/10 rounded px-2 py-1">
-                                <span className="text-[11px] font-mono font-bold text-blue-400 leading-none">
-                                    {typeof flight.departure_time === 'number' 
-                                        ? new Date(flight.departure_time * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
-                                        : '00:00'}
-                                </span>
-                                <span className="text-[9px] font-mono text-zinc-500 mt-0.5 leading-none">
-                                    {typeof flight.departure_time === 'number' 
-                                        ? new Date(flight.departure_time * 1000).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
-                                        : '---'}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
+                  {/* Left: Departure Airport */}
+                  <div className="flex flex-col flex-1 items-start">
+                    <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-tighter mb-1 flex items-center gap-1">
+                      <PlaneTakeoff size={12} /> From
+                    </span>
+                    <span className="text-lg font-semibold text-zinc-100 leading-tight">
+                      {flight.departure_airport}
+                    </span>
+                  </div>
 
-                    {/* Right: Arrival Airport */}
-                    <div className="flex flex-col flex-1 items-end">
-                        <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-tighter mb-1 flex items-center justify-end gap-1">
-                            To <PlaneLanding size={12} />
+                  {/* Middle: Arrow and Detailed Departure Info */}
+                  <div className="flex flex-col items-center justify-center min-w-30">
+                    <span className="text-zinc-700 text-xl font-light leading-none">→</span>
+
+                    <div className="mt-2 flex flex-col items-center gap-0.5">
+                      <span className="text-[9px] text-zinc-600 uppercase font-bold tracking-widest">Departure</span>
+
+                      {/* Date and Time Stack */}
+                      <div className="flex flex-col items-center bg-blue-500/5 border border-blue-500/10 rounded px-2 py-1">
+                        <span className="text-[11px] font-mono font-bold text-blue-400 leading-none">
+                          {typeof flight.departure_time === 'number'
+                            ? new Date(flight.departure_time * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+                            : '00:00'}
                         </span>
-                        <span className="text-lg font-semibold text-zinc-100 leading-tight">
-                            {flight.arrival_airport}
+                        <span className="text-[9px] font-mono text-zinc-500 mt-0.5 leading-none">
+                          {typeof flight.departure_time === 'number'
+                            ? new Date(flight.departure_time * 1000).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })
+                            : '---'}
                         </span>
+                      </div>
                     </div>
+                  </div>
+
+                  {/* Right: Arrival Airport */}
+                  <div className="flex flex-col flex-1 items-end">
+                    <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-tighter mb-1 flex items-center justify-end gap-1">
+                      To <PlaneLanding size={12} />
+                    </span>
+                    <span className="text-lg font-semibold text-zinc-100 leading-tight">
+                      {flight.arrival_airport}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
