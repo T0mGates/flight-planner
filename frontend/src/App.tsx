@@ -1,7 +1,7 @@
 import './App.css'
-import { useQuery }     from '@tanstack/react-query';
-import Map              from './Map.tsx'
-import FlightInfoCard   from './FlightInfoCard.tsx'
+import { useQuery } from '@tanstack/react-query';
+import Map from './Map.tsx'
+import FlightInfoCard from './FlightInfoCard.tsx'
 
 const fetchFlights = async () => {
   const response = await fetch('http://127.0.0.1:8000/flights');
@@ -20,14 +20,13 @@ function App() {
   if (isLoading) return <div>Loading flights...</div>;
   if (error) return <div>Error loading flight data!</div>;
 
-  console.log(data)
 
   return (
     <>
       <div className="card flex flex-row gap-2 justify-center">
-        <Map />
+        <Map flights={Object.values(data)} />
         <div className="w-100">
-          <FlightInfoCard flights={Object.values(data)}/>
+          <FlightInfoCard flights={Object.values(data)} />
         </div>
       </div>
     </>
