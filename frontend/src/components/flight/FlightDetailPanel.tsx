@@ -1,5 +1,5 @@
 import { type Flight } from "../../helpers/Types";
-import { Plane, Users, Package, Info, X } from "lucide-react";
+import { Plane, Users, Package, X } from "lucide-react";
 
 interface FlightDetailPanelProps {
     flight: Flight;
@@ -8,22 +8,23 @@ interface FlightDetailPanelProps {
 
 export default function FlightDetailPanel({ flight, onClose }: FlightDetailPanelProps) {
     return (
-        <div className="relative py-3 px-6 bg-zinc-900 border border-blue-500/50 rounded-xl text-white shadow-xl 
-                        animate-in fade-in zoom-in-95 slide-in-from-top-2 duration-300 ease-out">
+        <div className="relative py-4 px-6 bg-zinc-900/90 backdrop-blur-md border border-blue-500/30 rounded-xl text-white shadow-2xl overflow-hidden">
+            {/* Subtle glow effect */}
+            <div className="absolute -top-10 -left-10 w-32 h-32 bg-blue-500/10 blur-3xl pointer-events-none" />
 
             <button
                 onClick={onClose}
-                className="absolute top-1 right-1 p-0 m-0 !bg-transparent border-none shadow-none appearance-none cursor-pointer text-zinc-600 transition-colors flex items-center justify-center outline-none "
+                className="absolute top-2 right-2 p-1 text-zinc-600 hover:text-zinc-300 hover:bg-white/5 rounded-full transition-all outline-none cursor-pointer"
             >
-                <X size={14} strokeWidth={1.5} />
+                <X size={16} strokeWidth={2} />
             </button>
 
-            <div className="flex items-center gap-2 mb-3 border-b border-zinc-800 pb-2 mr-4">
-                <Info size={14} className="text-blue-400" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-blue-400">Flight Details</h3>
+            <div className="flex items-center gap-2 mb-4 border-b border-zinc-800 pb-2 mr-4">
+                <div className="h-1 w-1 rounded-full bg-blue-500 animate-pulse" />
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-400">Flight Details</h3>
             </div>
 
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-3 gap-6 relative z-10">
                 <div className="flex flex-col gap-0.5">
                     <div className="flex items-center gap-1.5">
                         <Plane size={12} className="text-zinc-500 shrink-0 -translate-y-[0.5px]" />

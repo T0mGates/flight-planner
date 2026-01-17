@@ -1,6 +1,9 @@
-from backend.models         import  Flight, Airport, raw_flight_data_to_flight_model
+from backend.models         import  Flight, Airport, FlightFilters, raw_flight_data_to_flight_model
 from backend.scheduler.main import  load_data
 from backend.scheduler      import  constants
+from backend.logging.logger import get_logger
+
+log = get_logger()
 
 class Database():
     _flight_data : dict[int, Flight]    = {}
@@ -31,8 +34,26 @@ class Database():
         return True
 
     @classmethod
-    def get_flights(cls)->dict[int, Flight]:
-        return cls._flight_data
+    def get_flights(cls, filters: FlightFilters)->dict[int, Flight]:
+        to_ret = {}
+        for flight in cls._flight_data.values():
+            to_include = True
+
+            if filters.destination:
+                if flight["arrival_airport"] != filters.destination:
+                    to_include = False
+
+            if filters.origin:
+                if flight["departure_airport"] != filters.origin:
+                    to_include = False
+
+            if to_include:
+                to_ret[flight["id"]] = flight
+
+            if len(to_ret.keys()) >= 100:
+                break
+            
+        return to_ret
     
     @classmethod
     def get_flight_by_id(cls, id: int)->Flight:

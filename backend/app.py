@@ -1,5 +1,7 @@
 from fastapi                            import FastAPI, HTTPException, status
-from backend.models                     import Flight
+from datetime                           import datetime
+from typing                             import Optional
+from backend.models                     import Flight, FlightFilters
 from backend.database                   import db
 from fastapi.middleware.cors            import CORSMiddleware
 from backend.sentry.error_monitoring    import init_fast_api_sentry
@@ -31,11 +33,16 @@ def read_root():
     return {"Hello": "World"}
 
 @app.get("/flights")
-def get_flights():
-    flights = database.get_flights()
-    if flights is None:
-        return []
-    return {i: f for (i, f) in flights.items() if int(i) < 100}
+async def get_flights(
+    # These are (optional) query params
+    start:          Optional[datetime] = None, 
+    end:            Optional[datetime] = None,
+    origin:         Optional[str] = None,
+    destination:    Optional[str] = None
+):
+    filters = FlightFilters(start=start, end=end, origin=origin, destination=destination)
+    log.debug(f"Received filters: start = {start}, end = {end}, origin = {origin}, destination = {destination}")
+    return database.get_flights(filters=filters)
 
 @app.post("/flights")
 def create_flight(flight: Flight):

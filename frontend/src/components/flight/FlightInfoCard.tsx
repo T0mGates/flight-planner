@@ -1,21 +1,23 @@
-import { type Flight } from "@/helpers/Types";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription
-} from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { type Flight, type FlightFilters }  from "../../helpers/Types";
+import FlightFiltersCard                    from "./FlightFiltersCard";
+import { Card, 
+         CardContent, 
+         CardHeader, 
+         CardTitle
+        }                                   from "@/components/ui/card";
+import { ScrollArea }                       from "@/components/ui/scroll-area";
 import { PlaneTakeoff, PlaneLanding, Hash } from "lucide-react";
 
 interface FlightInfoCardProps {
-    flights: Flight[];
-    selectedId?: number;
-    onSelect: (id: number) => void;
+    flights     : Flight[];
+    selectedId? : number;
+    onSelect    : (id: number) => void;
+    filters     : FlightFilters;
+    setFilters  : (filters: FlightFilters) => void;
+    isFetching  : boolean;
 }
 
-export default function FlightInfoCard({ flights, selectedId, onSelect }: FlightInfoCardProps) {
+export default function FlightInfoCard({ flights, selectedId, onSelect, filters, setFilters, isFetching }: FlightInfoCardProps) {
     return (
         <Card className="w-full shadow-2xl border-zinc-800 bg-zinc-950/90 backdrop-blur text-zinc-50">
 
@@ -28,15 +30,16 @@ export default function FlightInfoCard({ flights, selectedId, onSelect }: Flight
           {/* Blinking Indicator thingy */}
           <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" title="Live" />
         </div>
-        <CardDescription className="text-zinc-500">Real-time flight updates</CardDescription>
+        {/* Pass the props down to the inner card */}
+        <FlightFiltersCard filters={filters} setFilters={setFilters} isFetching={isFetching} />
       </CardHeader>
 
             <CardContent className="pt-4 bg-transparent">
-                <ScrollArea className="h-[500px] pr-4">
+                <ScrollArea className="h-125 pr-4">
                     <div className="flex flex-col gap-4">
                         {flights.map((flight) => (
                             <div
-                                key={flight.id}
+                                key={flight.id} 
                                 onClick={() => onSelect(flight.id)}
                                 className={`flex flex-col rounded-xl border transition-all cursor-pointer overflow-hidden ${selectedId === flight.id
                                         ? "border-blue-500 bg-blue-500/10 shadow-[0_0_15px_rgba(59,130,246,0.1)]"
