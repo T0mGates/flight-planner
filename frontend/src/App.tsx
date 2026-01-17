@@ -23,9 +23,9 @@ function App() {
 
   return (
     <>
-      <div className="card flex flex-row gap-2 justify-center">
+      <div className="relative w-screen h-screen">
         <Map flights={Object.values(data)} />
-        <div className="w-100">
+        <div className="absolute top-4 right-4 w-96 max-h-[calc(100vh-2rem)] z-[1000]">
           <FlightInfoCard flights={Object.values(data)} />
         </div>
       </div>
