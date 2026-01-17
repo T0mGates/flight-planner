@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 import { LatLng } from 'leaflet';
 import { parseLatLong } from '@/helpers/Types.ts';
-import type { Flight } from '@/helpers/Types.ts';
+import type { Flight, AirportDict, Airport } from '@/helpers/Types.ts';
 import { Popup, Marker, Polyline } from "react-leaflet";
 import PlaneMarker from './PlaneMarker';
 
@@ -42,41 +42,31 @@ function calculateHeading(from: LatLng, to: LatLng): number {
 }
 
 // Create all required details on the map related to a particular flight
-export default function FlightMapElements({ flight }: { flight: Flight }) {
+export default function FlightMapElements({ flight, airports }: { flight: Flight, airports: AirportDict }) {
   const positions: LatLng[] = parseLatLong(flight["route"]);
   const colour = getFlightColour(flight.id);
   const heading = positions.length > 1 ? calculateHeading(positions[0], positions[1]) : 0;
 
   return (
-    <Fragment>
+    <>
       {positions.length > 0 &&
         <>
           <Polyline positions={positions} pathOptions={{ color: colour, weight: 3, opacity: 0.7, dashArray: '10, 5', lineCap: 'round', lineJoin: 'round' }}>
             <Popup>
               <div>
                 <strong>Flight {flight.ACID}</strong><br />
-                Aircraft: {flight.Plane_type}<br />
-                Altitude: 0 ft<br />
-                Speed: 0 knots<br />
+                Aircraft: {flight.plane_type}<br />
+                Altitude: {flight.aircraft_speed} ft<br />
+                Speed: {flight.altitude} knots<br />
                 Passengers: {flight.passengers}<br />
                 Route: {flight.route}
               </div>
             </Popup>
           </Polyline>
-          <Marker position={positions[0]}>
-            <Popup>
-              Flight {flight["ACID"]} departure
-            </Popup>
-          </Marker>
-          <Marker position={positions[positions.length - 1]}>
-            <Popup>
-              Flight {flight["ACID"]} arrival
-            </Popup>
-          </Marker>
           <PlaneMarker position={positions[0]} heading={heading} />
         </>
       }
-    </Fragment  >
+    </>
   );
 }
 

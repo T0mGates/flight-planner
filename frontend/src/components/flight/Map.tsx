@@ -1,9 +1,11 @@
 import { MapContainer, TileLayer, } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import type { Flight } from '../../helpers/Types.ts';
+import type { AirportDict, Airport, Flight } from '@/helpers/Types.ts';
 import FlightMapElements from "./FlightMapElements.tsx"
+import AirportMapElements from './AirportMapElements.tsx';
 
-export default function Map({ flights }: { flights: Flight[] }) {
+
+export default function Map({ flights, airports }: { flights: Flight[], airports: AirportDict }) {
   return (
     <MapContainer center={[56.1304, -106.3468]} zoom={4} scrollWheelZoom={true} className="w-full h-full">
       <TileLayer
@@ -11,9 +13,12 @@ export default function Map({ flights }: { flights: Flight[] }) {
         attribution='&copy; OpenStreetMap contributors &copy; CARTO'
       />
       {flights.map(
-        (flight) => <FlightMapElements key={flight.id} flight={flight}></FlightMapElements>
+        (flight) => <FlightMapElements key={flight.id} flight={flight} airports={airports}></FlightMapElements>
       )}
-    </MapContainer>
+      {Object.entries(airports).map(
+        ([code, airport]) => <AirportMapElements key={code} code={code} airport={airport}></AirportMapElements>
+      )}
+    </MapContainer >
   );
 }
 

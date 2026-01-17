@@ -54,6 +54,15 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+.leaflet-popup-content-wrapper {
+  background: #18181b!important;
+  box-shadow: none !important;
+}
+
+.leaflet-popup-tip {
+  background: #18181b!important;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
