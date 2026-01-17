@@ -1,6 +1,6 @@
 from fastapi    import FastAPI, HTTPException, status
-from models     import Flight
-from database   import db
+from backend.models     import Flight
+from backend.database   import db
 
 database    = db.Database
 database.init()

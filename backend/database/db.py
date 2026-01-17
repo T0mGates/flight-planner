@@ -1,6 +1,7 @@
 import              json
 
-from models import  Flight
+from backend.models import  Flight
+from backend.scheduler.main import load_data
 
 class Database():
     _data: dict[int, Flight]    = {}
@@ -9,13 +10,10 @@ class Database():
     @classmethod
     def init(cls):
         # TODO (noah)
-        with open("../data.json", "r") as f:
-            flight_data = json.load(f)
+        flight_data = load_data('canadian_flights_1000.json').to_dict(orient='records')
 
         for flight in flight_data:
-            flight["id"]            = cls._next_id
-            cls._data[cls._next_id] = flight
-            cls._next_id            += 1
+            cls.add_flight(Flight(**flight))
 
     @classmethod
     def add_flight(cls, flight: Flight)->bool:
