@@ -11,9 +11,9 @@ class Flight(BaseModel):
     plane_type: str
     route: str
     is_cargo: bool
-    aircraft_speed: float
+    aircraft_speed: list[float]
     departure_time: int
-    altitude: int
+    altitude: list[int]
     passengers: int
 
 

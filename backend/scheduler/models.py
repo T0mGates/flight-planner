@@ -584,6 +584,26 @@ class FlightSchedule:
             flight.acid: flight.to_api_dict(i + 1) 
             for i, flight in enumerate(self.flights)
         }
+        
+    def to_database_flight(self) -> List[Flight]:
+        """Convert to list of Flight models for database insertion"""
+        from backend.models import Flight as DBFlight
+        db_flights = []
+        for flight in self.flights:
+            db_flight = DBFlight(
+                departure_airport=flight.departure_airport,
+                arrival_airport=flight.arrival_airport,
+                route=flight.route,
+                ACID=flight.acid,
+                plane_type=flight.plane_type,
+                is_cargo=flight.is_cargo,
+                aircraft_speed=[seg.current_speed_knots for seg in flight.segments],
+                departure_time=int(flight.departure_time.timestamp()),
+                altitude=[seg.chosen_altitude_ft for seg in flight.segments],
+                passengers=flight.passengers
+            )
+            db_flights.append(db_flight)
+        return db_flights
     
     # ===== COLLISION DETECTION =====
     

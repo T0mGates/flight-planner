@@ -4,6 +4,7 @@ from backend.models         import  Flight, Airport, FlightFilters, raw_flight_d
 from backend.scheduler.data_loader import load_data
 from backend.scheduler      import  constants
 from backend.logging.logger import  get_logger
+from backend.scheduler.models import FlightSchedule
 
 log = get_logger()
 
@@ -13,10 +14,10 @@ class Database():
 
     @classmethod
     def init(cls):
-        flight_data = load_data('canadian_flights_1000.json').to_dict(orient='records')
+        flight_data = FlightSchedule.from_json_file('canadian_flights_1000.json')
 
-        for flight in flight_data:
-            cls.add_flight(raw_flight_data_to_flight_model(raw_data=flight))
+        for raw_flight in flight_data.to_database_flight():
+            cls.add_flight(raw_flight)
 
         for code in constants.TRANSLATION.keys():
             latlon          = constants.TRANSLATION.get(code, "")
