@@ -153,7 +153,7 @@ export default function SchedulerChat({ uuid }: SchedulerChatProps) {
                                 <div className="flex flex-col items-center justify-center py-10 text-center opacity-20">
                                     <Bot size={32} className="mb-2" />
                                     <p className="text-[10px] font-mono uppercase tracking-widest">
-                                        Any flight inquiries?...
+                                        Any flight inquiries?
                                     </p>
                                 </div>
                             )}

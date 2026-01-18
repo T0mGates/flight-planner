@@ -16,14 +16,27 @@ def compare_schedules(new_schedule, old_schedule):
     Returns:
         tuple: (top_delays, merged_df, delay_count, avg_delay, new_collisions, old_collisions)
     """
+
+    # Helper to clean and prepare DataFrames
+    def prepare_df(data):
+        if not isinstance(data, pd.DataFrame):
+            # orient='index' handles { ACID: {data} }
+            df = pd.DataFrame.from_dict(data, orient='index')
+        else:
+            df = data.copy()
+            
+        # If 'ACID' isn't a column, it's likely the index. 
+        # Move it to a column without using reset_index() naming
+        if 'ACID' not in df.columns:
+            df.insert(0, 'ACID', df.index)
+            
+        return df
     
-    """
-    # Ensure inputs are DataFrames (in case dictionaries were passed)
-    df_new = pd.DataFrame(new_schedule) if not isinstance(new_schedule, pd.DataFrame) else new_schedule
-    df_old = pd.DataFrame(old_schedule) if not isinstance(old_schedule, pd.DataFrame) else old_schedule
+    df_new = prepare_df(new_schedule)
+    df_old = prepare_df(old_schedule)
 
     # 1. Merge the schedules
-    # We use suffixes to distinguish the departure times: _opt (optimized) and _orig (original)
+    # Guaranteed to have 'ACID' as a column
     merged = pd.merge(
         df_new, 
         df_old, 
@@ -53,24 +66,15 @@ def compare_schedules(new_schedule, old_schedule):
     
     new_collisions = new_flight_schedule.count_collisions()
     old_collisions = old_flight_schedule.count_collisions()
-    """
-    # Your input data
-    raw_data = (
-    [
-        {'ACID': "ABC123", 'departure_airport': "CYYZ", 'arrival_airport': "CYVR", 'departure_time_orig': 1000, 'departure_time_opt': 1100, 'departure_time_diff': 100}, 
-        {'ACID': "DEF456", 'departure_airport': "CYUL", 'arrival_airport': "CYYC", 'departure_time_orig': 1200, 'departure_time_opt': 1250, 'departure_time_diff': 50}
-    ], 
-    22, 60, 2, 5
-)
 
-    # Unpacking the tuple
-    flights, mean_val, changes, new_collisions, old_collisions = raw_data
 
     # Transforming into the dictionary
     formatted_dict = {
-        "flights": flights,
-        "mean_delay": mean_val,
-        "optimization_changes": changes,
+        "most_notable_delays": top_delays,
+        "number_of_delays": delay_count,
+        #"flights": flights,
+        "mean_delay": avg_delay,
+        #"optimization_changes": changes,
         "active_conflicts": new_collisions, # Matches 'Active Conflicts' in your React code
         "total_conflicts": old_collisions   # Matches 'Total Conflicts' in your React code
     }
