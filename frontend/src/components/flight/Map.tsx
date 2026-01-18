@@ -8,10 +8,12 @@ import AirportMapElements from './AirportMapElements.tsx';
 export default function Map({
   flights,
   airports,
-  onSelectFlight
+  selectedFlightId,
+  onSelectFlight,
 }: {
   flights: Flight[],
   airports: AirportDict,
+  selectedFlightId: number,
   onSelectFlight: (id: number) => void
 }) {
   return (
@@ -26,6 +28,7 @@ export default function Map({
             key={flight.id}
             flight={flight}
             airports={airports}
+            selectedFlightId={selectedFlightId}
             onSelect={onSelectFlight}
           />
         )

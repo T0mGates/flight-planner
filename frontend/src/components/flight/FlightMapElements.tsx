@@ -104,8 +104,9 @@ function calculateCurrentFlightPosition(
   return flightPositions[flightPositions.length - 1];
 }
 
-export default function FlightMapElements({ flight, airports, onSelect }:
-  { flight: Flight, airports: AirportDict, onSelect: (id: number) => void }) {
+export default function FlightMapElements({ flight, airports, selectedFlightId, onSelect }:
+  { flight: Flight, airports: AirportDict, selectedFlightId: number, onSelect: (id: number) => void }) {
+
   const positions = calculateFlightPositions(flight, airports);
   const colour = getFlightColour(flight.id);
   const heading = positions.length > 1 ? calculateHeading(positions[0], positions[1]) : 0;

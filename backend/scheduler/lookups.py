@@ -1,6 +1,6 @@
 import pandas as pd
 
-def create_flight_constraints(df):
+def create_flight_constraints() -> tuple[pd.DataFrame, pd.DataFrame]:
     """Create a constraints table for flights."""
     try:
         # Define altitude constraints with one Aircraft_Type per row

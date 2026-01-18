@@ -1,3 +1,5 @@
+import asyncio
+import uuid
 from fastapi                            import FastAPI, HTTPException, status
 from datetime                           import datetime
 from typing                             import Optional
@@ -6,12 +8,22 @@ from backend.database                   import db
 from fastapi.middleware.cors            import CORSMiddleware
 from backend.sentry.error_monitoring    import init_fast_api_sentry
 from backend.logging.logger             import get_logger
+from backend.scheduler.optimization_worker import optimizer_worker
+from backend.scheduler.work_queue       import queue, job_status
+from contextlib import asynccontextmanager
+
 
 init_fast_api_sentry()
 database    = db.Database
 database.init()
 
-app         = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    asyncio.create_task(optimizer_worker())
+    yield
+
+app         = FastAPI(lifespan=lifespan)
+
 
 # Setup logger
 log = get_logger()
@@ -86,3 +98,51 @@ def get_airport_details_by_iata_code(iata_code: str):
     
     return airport_details
     
+@app.get("/start_worker")
+async def optimize():
+    job_id = str(uuid.uuid4())
+
+    job_status[job_id] = {
+        "status": "queued",
+        "progress": 0,
+        "result": None,
+    }
+
+    await queue.put((job_id, None))
+
+    return {"job_id": job_id}
+
+@app.get("/job_status/{job_id}")
+def get_job_status(job_id: str):
+    job = job_status.get(job_id)
+
+    if not job:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Job with id: {job_id} does not exist"
+        )
+        
+    # Dont show job['result']
+    job_copy = job.copy()
+    if job_copy['status'] == 'completed':
+        job_copy['result'] = 'Result available for download.'
+    
+    return job_copy
+
+@app.get("/job_status/{job_id}/flight_results")
+def get_job_flight_results(job_id: str):
+    job = job_status.get(job_id)
+
+    if not job:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Job with id: {job_id} does not exist"
+        )
+    
+    if job['status'] != 'completed':
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Job with id: {job_id} is not yet completed"
+        )
+    
+    return job['result']

@@ -1,7 +1,7 @@
 from datetime               import  datetime, timezone
 
 from backend.models         import  Flight, Airport, FlightFilters, raw_flight_data_to_flight_model
-from backend.scheduler.main import  load_data
+from backend.scheduler.data_loader import load_data
 from backend.scheduler      import  constants
 from backend.logging.logger import  get_logger
 

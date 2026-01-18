@@ -126,12 +126,10 @@ function App() {
     setSelectedId(null); // Deselects the flight
   }, []);
 
-
   return (
     <div className="relative w-screen h-screen">
-      {/* Controls for moving simulating planes moving */}
       <TimeControls startTimeSeconds={earliestFlightTime} endTimeSeconds={latestFlightTime} currentTimeSeconds={currentDisplayTime} setCurrentTimeSeconds={setCurrentDisplayTime}></TimeControls>
-      <Map flights={Object.values(flightData ?? {})} airports={airportData ?? {}} onSelectFlight={handleSelect} />
+      <Map flights={Object.values(flightData ?? {})} airports={airportData ?? {}} selectedFlightId={selectedId ?? -1} onSelectFlight={handleSelect} />
       <div className="absolute top-4 right-4 w-96 h-[calc(100vh-2rem)] z-1000 flex flex-col gap-4">
         <AnimatePresence mode="popLayout">
           {selectedFlight && (
