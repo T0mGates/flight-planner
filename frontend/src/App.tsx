@@ -187,7 +187,7 @@ function App() {
       </div>
 
       {/* Top Left Analysis Button, or if a worker is active, separate component */}
-      <div className="absolute top-3 left-14 z-1000">
+      <div className="absolute top-4 left-4 z-1000">
         {workerId ? (
           <AnalysisStatus id={workerId} />
         ) : (
