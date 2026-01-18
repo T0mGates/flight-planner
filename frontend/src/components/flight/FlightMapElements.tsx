@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import type { Flight, AirportDict } from '@/helpers/Types.ts';
 import PlaneMarker from './PlaneMarker';
 import FlightMapLine from './FlightMapLine';
@@ -31,8 +32,8 @@ function getFlightColour(flightId: string): string {
 
 export default function FlightMapElements({ flight, airports, selectedFlightId, onSelect, currentTime }:
   { flight: Flight, airports: AirportDict, selectedFlightId: string | null, onSelect: (acid: string) => void, currentTime: number }) {
-  const positions = calculateFlightPositions(flight, airports);
-  const colour = getFlightColour(flight.ACID);
+  const positions = useMemo(() => calculateFlightPositions(flight, airports), [flight, airports]);
+  const colour = useMemo(() => getFlightColour(flight.ACID), [flight]);
   const flightStatus = calculateFlightStatus(flight, positions, currentTime);
   const selected = flight.ACID == selectedFlightId;
 

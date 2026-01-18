@@ -153,11 +153,11 @@ function App() {
     try {
       const response = await fetch(`http://localhost:8000/apply_optimization/${workerId}`);
       if (!response.ok) throw new Error("Failed to apply changes");
-      
+
       // Add extra delay to let the animation look nice
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      resetAnalysis(); 
+
+      resetAnalysis();
     } catch (error) {
       Sentry.captureException(error);
     } finally {
@@ -308,7 +308,7 @@ function App() {
       {/* Top Left Analysis Button, or if a worker is active, separate component */}
       <div className="absolute top-4 left-4 z-1000">
         {isApplying
-        ?
+          ?
           (
             <motion.div
               key="applying-loader"
@@ -319,7 +319,7 @@ function App() {
             >
               {/* Animated background pulse */}
               <div className="absolute inset-0 bg-emerald-500/5 animate-pulse" />
-              
+
               <div className="relative">
                 <Loader2 size={20} className="text-emerald-400 animate-spin" />
                 {/* Outer Glow Ring */}
@@ -334,20 +334,20 @@ function App() {
                     Applying
                   </span>
                   <span className="flex gap-0.5">
-                    <motion.span 
-                      animate={{ opacity: [0, 1, 0] }} 
+                    <motion.span
+                      animate={{ opacity: [0, 1, 0] }}
                       transition={{ duration: 1.5, repeat: Infinity, times: [0, 0.2, 1] }}
-                      className="w-1 h-1 rounded-full bg-emerald-400" 
+                      className="w-1 h-1 rounded-full bg-emerald-400"
                     />
-                    <motion.span 
-                      animate={{ opacity: [0, 1, 0] }} 
+                    <motion.span
+                      animate={{ opacity: [0, 1, 0] }}
                       transition={{ duration: 1.5, repeat: Infinity, times: [0.2, 0.4, 1] }}
-                      className="w-1 h-1 rounded-full bg-emerald-400" 
+                      className="w-1 h-1 rounded-full bg-emerald-400"
                     />
-                    <motion.span 
-                      animate={{ opacity: [0, 1, 0] }} 
+                    <motion.span
+                      animate={{ opacity: [0, 1, 0] }}
                       transition={{ duration: 1.5, repeat: Infinity, times: [0.4, 0.6, 1] }}
-                      className="w-1 h-1 rounded-full bg-emerald-400" 
+                      className="w-1 h-1 rounded-full bg-emerald-400"
                     />
                   </span>
                 </div>
@@ -357,7 +357,7 @@ function App() {
               </div>
             </motion.div>
           )
-        :
+          :
           workerId ? (
             <AnalysisStatus id={workerId} seeNewChanges={seeNewChanges} setSeeNewChanges={setSeeNewChanges} applyOptimizations={applyOptimizations} />
           ) : (
