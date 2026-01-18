@@ -222,6 +222,42 @@ class CostDriven4DResolver:
  
         return out
     
+    @staticmethod
+    def format_for_fastapi(df):
+        # altitudes and speed should be list of floats, sorted by segment_number
+        # this will return df in following format:
+        identifier = 1
+        output = {}
+        
+        df.sort_values(['ACID', 'segment_number'], inplace=True)
+        
+        # group by ACID and then create entries
+        for _, group in df.groupby('ACID'):
+            group = group.sort_values('segment_number')
+            altitudes = group['chosen_altitude_ft'].tolist()
+            speeds = group['knots'].tolist()
+            output[str(identifier)] = {
+                "departure_airport": str(group['from_airport'].iloc[0]) if 'from_airport' in group else str(group['from'].iloc[0]),
+                "arrival_airport": str(group['to_airport'].iloc[0]) if 'to_airport' in group else str(group['to'].iloc[0]),
+                "route": str(group['route'].iloc[0]) if 'route' in group else "",
+                "ACID": str(group['ACID'].iloc[0]),
+                "plane_type": str(group['Plane_type'].iloc[0]) if 'Plane_type' in group else "",
+                "is_cargo": bool(group['is_cargo'].iloc[0]) if 'is_cargo' in group else False,
+                "aircraft_speed": [float(s) for s in speeds],
+                "departure_time": int(group['estimated_departure_time'].iloc[0].timestamp()),
+                "altitude": [float(a) for a in altitudes],
+                "passengers": int(group['passengers'].iloc[0]) if 'passengers' in group else 0,
+                "id": int(identifier)
+            }
+            
+            identifier += 1
+            
+        print(output)
+                
+        return output
+        
+            
+            
 if __name__ == "__main__":    
     # Load flight schedule
     flight_arrival_times = generate_flight_schedule('canadian_flights_1000.json')
