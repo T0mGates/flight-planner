@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Bot, User, Loader2, Terminal, X } from "lucide-react"; // Added X icon
+import { Send, Bot, User, Loader2, Terminal, X } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
@@ -132,7 +132,6 @@ export default function SchedulerChat({ uuid }: SchedulerChatProps) {
     return (
         <div className="w-80 h-96 origin-bottom animate-in fade-in slide-in-from-bottom duration-300">
             <Card className="w-full h-full flex flex-col shadow-2xl border-zinc-800 bg-zinc-950/50 backdrop-blur-md text-zinc-50 overflow-hidden">
-
                 <CardHeader className="py-3 px-4 border-b border-zinc-900 flex-none">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -141,10 +140,9 @@ export default function SchedulerChat({ uuid }: SchedulerChatProps) {
                                 AI Scheduler Help
                             </CardTitle>
                         </div>
-                        {/* Close Button */}
                         <button
                             onClick={() => setIsOpen(false)}
-                            className="!bg-transparent border-none p-0 text-zinc-500 hover:text-white transition-colors"
+                            className="!bg-transparent border-none p-0 text-zinc-500 hover:text-white transition-colors outline-none"
                         >
                             <X size={18} />
                         </button>
@@ -152,7 +150,6 @@ export default function SchedulerChat({ uuid }: SchedulerChatProps) {
                 </CardHeader>
 
                 <CardContent className="flex-1 min-h-0 p-0 flex flex-col overflow-hidden">
-
                     <ScrollArea className="flex-1 w-full h-full">
                         <div className="p-4 flex flex-col gap-4">
                             {messages.length === 0 && (
@@ -182,10 +179,22 @@ export default function SchedulerChat({ uuid }: SchedulerChatProps) {
                                     <div
                                         className={`rounded-xl px-3 py-2 text-xs leading-relaxed max-w-[85%]
                                         ${msg.role === "user"
-                                                ? "bg-zinc-800/50 text-zinc-200"
+                                                ? "bg-zinc-800/50 text-zinc-200 whitespace-pre-wrap"
                                                 : "bg-blue-500/5 border border-blue-500/10 text-blue-50"}`}
                                     >
-                                        {msg.content}
+                                        {/* Logic to handle assistant points via new lines */}
+                                        {msg.role === "assistant" ? (
+                                            <ul className="space-y-1 list-none">
+                                                {msg.content.split("\n").filter(line => line.trim() !== "").map((line, index) => (
+                                                    <li key={index} className="flex gap-2">
+                                                        <span className="text-blue-500 shrink-0">•</span>
+                                                        <span>{line.trim()}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        ) : (
+                                            msg.content
+                                        )}
                                     </div>
                                 </div>
                             ))}
@@ -229,4 +238,4 @@ export default function SchedulerChat({ uuid }: SchedulerChatProps) {
             </Card>
         </div>
     );
-}   
+}
