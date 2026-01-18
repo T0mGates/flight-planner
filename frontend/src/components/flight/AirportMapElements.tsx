@@ -1,6 +1,6 @@
 import type { Airport } from '@/helpers/Types.ts';
 import { Marker, Popup } from 'react-leaflet';
-import { parseSingleLatLong } from '@/helpers/Types.ts';
+import { parseSingleLatLong } from '@/helpers/Positions.ts';
 import { divIcon } from "leaflet";
 import { Plane } from 'lucide-react';
 

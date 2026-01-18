@@ -10,11 +10,13 @@ export default function Map({
   airports,
   selectedFlightId,
   onSelectFlight,
+  currentTime
 }: {
   flights: Flight[],
   airports: AirportDict,
   selectedFlightId: number,
-  onSelectFlight: (id: number) => void
+  onSelectFlight: (id: number) => void,
+  currentTime: number
 }) {
   return (
     <MapContainer center={[56.1304, -106.3468]} zoom={4} scrollWheelZoom={true} className="w-full h-full">
@@ -30,6 +32,7 @@ export default function Map({
             airports={airports}
             selectedFlightId={selectedFlightId}
             onSelect={onSelectFlight}
+            currentTime={currentTime}
           />
         )
       )}

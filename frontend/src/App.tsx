@@ -8,6 +8,7 @@ import FlightInfoCard from './components/flight/FlightInfoCard.tsx';
 import FlightDetailPanel from './components/flight/FlightDetailPanel.tsx';
 import { type Flight } from "./helpers/Types";
 import TimeControls from './components/flight/TimeControls.tsx';
+import { getFirstFlight, getLastFlight } from './helpers/Flights.ts';
 
 // Fetch with filters
 const fetchFlights = async ({ queryKey }: any): Promise<Record<string, Flight>> => {
@@ -52,26 +53,6 @@ const fetchFlightById = async (id: number | null): Promise<Flight | null> => {
   return data.flight;
 };
 
-function getFirstLastFlight(flights: Flight[], first: Boolean) {
-  if (flights == null || flights == undefined || flights.length == 0) {
-    return 0;
-  }
-  let earliest = flights[0];
-  for (const flight of flights) {
-    if (first) {
-      if (flight.departure_time < earliest.departure_time) {
-        earliest = flight;
-      }
-    }
-    else {
-      if (flight.departure_time > earliest.departure_time) {
-        earliest = flight;
-      }
-    }
-  }
-  return earliest.departure_time;
-}
-
 function App() {
   // DEFAULT FILTERS
   const [filters, setFilters] = useState({
@@ -91,12 +72,14 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // TODO: handle errors
   const { data: flightData, isLoading: flightsLoading, error: flightError, isFetching: isFetchingFlights } = useQuery({
     queryKey: ['flights', filters],
     queryFn: fetchFlights,
     refetchInterval: 10000,
   });
 
+  // TODO: handle errors
   const { data: airportData, isLoading: airportsLoading, error: airportError } = useQuery({
     queryKey: ['airports'],
     queryFn: fetchAirports,
@@ -115,10 +98,9 @@ function App() {
   }, []);
 
   // Need start and end times for all flights, for all flights that are loaded
-  // TODO: May need to change this to sensibly set the currentDisplayTime whenver the flights change
   const [currentDisplayTime, setCurrentDisplayTime] = useState(0);
-  const earliestFlightTime = getFirstLastFlight(Object.values(flightData ?? {}), true);
-  const latestFlightTime = getFirstLastFlight(Object.values(flightData ?? {}), false);
+  const earliestFlightTime = getFirstFlight(Object.values(flightData ?? {}));
+  const latestFlightTime = getLastFlight(Object.values(flightData ?? {}), airportData ?? {});
 
   // Unselect the clicked ID if "apply filters" is clicked
   const handleFilterChange = useCallback((newFilters: any) => {
@@ -128,8 +110,8 @@ function App() {
 
   return (
     <div className="relative w-screen h-screen">
-      <TimeControls startTimeSeconds={earliestFlightTime} endTimeSeconds={latestFlightTime} currentTimeSeconds={currentDisplayTime} setCurrentTimeSeconds={setCurrentDisplayTime}></TimeControls>
-      <Map flights={Object.values(flightData ?? {})} airports={airportData ?? {}} selectedFlightId={selectedId ?? -1} onSelectFlight={handleSelect} />
+      <TimeControls startTimeSeconds={earliestFlightTime} endTimeSeconds={latestFlightTime} currentTimeSeconds={currentDisplayTime} setCurrentTimeSeconds={setCurrentDisplayTime} timestep={60}></TimeControls>
+      <Map flights={Object.values(flightData ?? {})} airports={airportData ?? {}} selectedFlightId={selectedId ?? -1} onSelectFlight={handleSelect} currentTime={currentDisplayTime} />
       <div className="absolute top-4 right-4 w-96 h-[calc(100vh-2rem)] z-1000 flex flex-col gap-4">
         <AnimatePresence mode="popLayout">
           {selectedFlight && (

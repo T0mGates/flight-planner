@@ -3,18 +3,10 @@ import { Play, Pause } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import logo from '../../assets/plane_logo.png';
 
-interface TimeControlsProps {
-  startTimeSeconds: number; // Unix timestamp in seconds
-  endTimeSeconds: number;   // Unix timestamp in seconds
-  currentTimeSeconds: number; // Current time as unix timestamp
-  setCurrentTimeSeconds: (time: number) => void; // Setter for current time
-}
 // Format unix timestamp to readable date/time
 function formatTime(unixSeconds: number) {
   // Convert to milliseconds
   const date = new Date(unixSeconds * 1000);
-  console.log(date);
-  console.log(unixSeconds);
   return date.toLocaleString('en-US', {
     timeZone: "UTC",
     month: 'short',
@@ -24,11 +16,20 @@ function formatTime(unixSeconds: number) {
   });
 };
 
+interface TimeControlsProps {
+  startTimeSeconds: number; // Unix timestamp in seconds
+  endTimeSeconds: number;   // Unix timestamp in seconds
+  currentTimeSeconds: number; // Current time as unix timestamp
+  setCurrentTimeSeconds: (time: number) => void; // Setter for current time
+  timestep: number, // timestep for controls in seconds
+}
+
 export default function TimeControls({
   startTimeSeconds,
   endTimeSeconds,
   currentTimeSeconds,
-  setCurrentTimeSeconds
+  setCurrentTimeSeconds,
+  timestep,
 }: TimeControlsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -39,11 +40,11 @@ export default function TimeControls({
 
   // Calculate the total duration in hours
   const totalDurationSeconds = endTimeSeconds - startTimeSeconds;
-  const totalHours = totalDurationSeconds / 3600;
+  const totalSteps = totalDurationSeconds / timestep;
 
   // Handle slider change - convert hours back to unix seconds
   const handleSliderChange = (value: number[]) => {
-    const newTimeSeconds = startTimeSeconds + (value[0] * 3600);
+    const newTimeSeconds = startTimeSeconds + (value[0] * timestep);
     setCurrentTimeSeconds(newTimeSeconds);
   };
 
@@ -85,10 +86,10 @@ export default function TimeControls({
             {/* Slider */}
             <div className="flex-1">
               <Slider
-                defaultValue={[totalHours / 2]}
+                defaultValue={[0]}
                 onValueChange={handleSliderChange}
                 min={0}
-                max={totalHours}
+                max={totalSteps}
                 step={1}
                 className="w-full"
               />
