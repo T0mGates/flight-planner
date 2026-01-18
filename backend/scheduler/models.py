@@ -163,9 +163,10 @@ class Flight:
         
     def to_api_dict(self, flight_id: int) -> dict:
         """Convert to FastAPI output format (JSON-serializable)"""
+        dep, arr = self.airports_as_names()
         return {
-            "departure_airport": str(self.departure_airport),
-            "arrival_airport": str(self.arrival_airport),
+            "departure_airport": dep,
+            "arrival_airport": arr,
             "route": str(self.route),
             "ACID": str(self.acid),
             "plane_type": str(self.plane_type),
