@@ -4,7 +4,7 @@ import { Play, Loader2 } from "lucide-react";
 import * as Sentry from "@sentry/react";
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Map from './components/flight/Map.tsx';
 import FlightInfoCard from './components/flight/FlightInfoCard.tsx';
 import FlightDetailPanel from './components/flight/FlightDetailPanel.tsx';
@@ -109,9 +109,13 @@ function App() {
     destination: ""
   });
 
+  const queryClient = useQueryClient();
+
   const [seeNewChanges, setSeeNewChanges] = useState(false);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const [isApplying, setIsApplying] = useState(false);
 
   const {
     data: analysisData,
@@ -137,6 +141,29 @@ function App() {
   if (analysisStarted) {
     workerId = analysisData["job_id"];
   }
+
+  const resetAnalysis = async () => {
+    setSeeNewChanges(false);
+    // Clean up the analysis query so it's as if we haven't started one
+    queryClient.removeQueries({ queryKey: ['startWorker'] });
+  }
+
+  const applyOptimizations = async () => {
+    setIsApplying(true); // Start loading UI
+    try {
+      const response = await fetch(`http://localhost:8000/apply_optimization/${workerId}`);
+      if (!response.ok) throw new Error("Failed to apply changes");
+      
+      // Add extra delay to let the animation look nice
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      resetAnalysis(); 
+    } catch (error) {
+      Sentry.captureException(error);
+    } finally {
+      setIsApplying(false);
+    }
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -214,12 +241,9 @@ function App() {
     setSelectedId(null); // Deselects the flight
   }, []);
 
-  console.log(`flightdiffs: ${JSON.stringify(flightDiffs)}`)
-  console.log(`acid to look for: ${selectedFlight ? selectedFlight.ACID : 'na'}`)
-
   return (
     <div className="relative w-screen h-screen">
-      <div className="absolute bottom-4 left-4 z-[1000] flex flex-col gap-4 items-start pointer-events-none">
+      <div className="absolute bottom-4 left-4 z-1000 flex flex-col gap-4 items-start pointer-events-none">
         {/* The Chat is now physically above the controls in the DOM */}
         <div className="w-80 pointer-events-auto">
           <SchedulerChat />
@@ -283,56 +307,108 @@ function App() {
 
       {/* Top Left Analysis Button, or if a worker is active, separate component */}
       <div className="absolute top-4 left-4 z-1000">
-        {workerId ? (
-          <AnalysisStatus id={workerId} seeNewChanges={seeNewChanges} setSeeNewChanges={setSeeNewChanges} />
-        ) : (
-          <motion.button
-            onClick={() => triggerAnalysis()}
-            disabled={isAnalyzing || analysisStarted}
-            animate={!(isAnalyzing || analysisStarted) ? {
-              boxShadow: [
-                "0 0 0px rgba(59, 130, 246, 0)",
-                "0 0 20px rgba(59, 130, 246, 0.4)",
-                "0 0 0px rgba(59, 130, 246, 0)"
-              ],
-              borderColor: [
-                "rgba(39, 39, 42, 1)",
-                "rgba(59, 130, 246, 0.8)",
-                "rgba(39, 39, 42, 1)"
-              ]
-            } : {}}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-            className={`
-              group relative flex items-center gap-3 px-4 py-2.5 rounded-xl border transition-all duration-300
-              backdrop-blur-md font-bold uppercase text-[10px] tracking-widest outline-none
-              ${isAnalyzing || analysisStarted
-                ? "bg-blue-500/10 border-blue-500/50 text-blue-400 cursor-wait"
-                : "bg-zinc-950/90 text-white hover:text-blue-400"
-              }
-            `}
-          >
-            <div className="relative flex items-center justify-center">
-              {isAnalyzing || analysisStarted ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : (
-                <Play
-                  size={16}
-                  className="group-hover:scale-110 transition-transform"
-                />
-              )}
-            </div>
+        {isApplying
+        ?
+          (
+            <motion.div
+              key="applying-loader"
+              initial={{ opacity: 0, scale: 0.9, x: -20 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              exit={{ opacity: 0, scale: 0.9, x: 20 }}
+              className="relative flex items-center gap-4 px-5 py-3 rounded-xl border border-emerald-500/40 bg-zinc-950/90 backdrop-blur-md shadow-[0_0_30px_rgba(16,185,129,0.15)] overflow-hidden"
+            >
+              {/* Animated background pulse */}
+              <div className="absolute inset-0 bg-emerald-500/5 animate-pulse" />
+              
+              <div className="relative">
+                <Loader2 size={20} className="text-emerald-400 animate-spin" />
+                {/* Outer Glow Ring */}
+                <div className="absolute inset-0 text-emerald-400/30 blur-sm animate-pulse">
+                  <Loader2 size={20} />
+                </div>
+              </div>
 
-            <div className="flex flex-col items-start leading-none">
-              <span className="mb-0.5">
-                {isAnalyzing || analysisStarted ? "Analyzing schedule..." : "Start Analysis"}
-              </span>
-            </div>
-          </motion.button>
-        )}
+              <div className="flex flex-col items-start relative z-10">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.25em] leading-none">
+                    Applying
+                  </span>
+                  <span className="flex gap-0.5">
+                    <motion.span 
+                      animate={{ opacity: [0, 1, 0] }} 
+                      transition={{ duration: 1.5, repeat: Infinity, times: [0, 0.2, 1] }}
+                      className="w-1 h-1 rounded-full bg-emerald-400" 
+                    />
+                    <motion.span 
+                      animate={{ opacity: [0, 1, 0] }} 
+                      transition={{ duration: 1.5, repeat: Infinity, times: [0.2, 0.4, 1] }}
+                      className="w-1 h-1 rounded-full bg-emerald-400" 
+                    />
+                    <motion.span 
+                      animate={{ opacity: [0, 1, 0] }} 
+                      transition={{ duration: 1.5, repeat: Infinity, times: [0.4, 0.6, 1] }}
+                      className="w-1 h-1 rounded-full bg-emerald-400" 
+                    />
+                  </span>
+                </div>
+                <span className="text-[9px] text-zinc-500 font-mono font-medium mt-1 uppercase tracking-tighter">
+                  Synchronizing New Flight Schedule...
+                </span>
+              </div>
+            </motion.div>
+          )
+        :
+          workerId ? (
+            <AnalysisStatus id={workerId} seeNewChanges={seeNewChanges} setSeeNewChanges={setSeeNewChanges} applyOptimizations={applyOptimizations} />
+          ) : (
+            <motion.button
+              onClick={() => triggerAnalysis()}
+              disabled={isAnalyzing || analysisStarted}
+              animate={!(isAnalyzing || analysisStarted) ? {
+                boxShadow: [
+                  "0 0 0px rgba(59, 130, 246, 0)",
+                  "0 0 20px rgba(59, 130, 246, 0.4)",
+                  "0 0 0px rgba(59, 130, 246, 0)"
+                ],
+                borderColor: [
+                  "rgba(39, 39, 42, 1)",
+                  "rgba(59, 130, 246, 0.8)",
+                  "rgba(39, 39, 42, 1)"
+                ]
+              } : {}}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+              className={`
+                group relative flex items-center gap-3 px-4 py-2.5 rounded-xl border transition-all duration-300
+                backdrop-blur-md font-bold uppercase text-[10px] tracking-widest outline-none
+                ${isAnalyzing || analysisStarted
+                  ? "bg-blue-500/10 border-blue-500/50 text-blue-400 cursor-wait"
+                  : "bg-zinc-950/90 text-white hover:text-blue-400"
+                }
+              `}
+            >
+              <div className="relative flex items-center justify-center">
+                {isAnalyzing || analysisStarted ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Play
+                    size={16}
+                    className="group-hover:scale-110 transition-transform"
+                  />
+                )}
+              </div>
+
+              <div className="flex flex-col items-start leading-none">
+                <span className="mb-0.5">
+                  {isAnalyzing || analysisStarted ? "Analyzing schedule..." : "Start Analysis"}
+                </span>
+              </div>
+            </motion.button>
+          )
+        }
       </div>
     </div>
   );

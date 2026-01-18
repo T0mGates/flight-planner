@@ -20,9 +20,10 @@ export interface AnalysisStatusProps {
   id: string;
   seeNewChanges: boolean;
   setSeeNewChanges: (seeNewChanges: boolean) => void;
+  applyOptimizations: () => void;
 }
 
-export default function AnalysisStatus({ id, seeNewChanges, setSeeNewChanges }: AnalysisStatusProps) {
+export default function AnalysisStatus({ id, seeNewChanges, setSeeNewChanges, applyOptimizations }: AnalysisStatusProps) {
   const { data, error } = useQuery<StatusData>({
     queryKey: ["analysisStatus", id],
     queryFn: async () => {
@@ -132,7 +133,7 @@ export default function AnalysisStatus({ id, seeNewChanges, setSeeNewChanges }: 
               className="flex flex-row gap-2 justify-center w-full"
             >
               <button
-                onClick={() => console.log("Applying changes...")}
+                onClick={() => applyOptimizations()}
                 className="flex-1 group flex items-center justify-center gap-1 px-1 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all active:scale-95"
               >
                 <span className="text-[7px] font-bold uppercase tracking-wider whitespace-nowrap">Apply Changes</span>
