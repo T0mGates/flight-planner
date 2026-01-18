@@ -3,7 +3,7 @@ import { LatLng } from 'leaflet';
 import type { Flight } from '@/helpers/Types.ts';
 import L from 'leaflet';
 
-export default function FlightMapLine({ flight, positions, colour, selectedFlightId, onSelect }: { flight: Flight, positions: LatLng[], colour: string, selectedFlightId: string | null, onSelect: (acid: string) => void }) {
+export default function FlightMapLine({ flight, positions, colour, selected, onSelect }: { flight: Flight, positions: LatLng[], colour: string, selected: boolean, onSelect: (acid: string) => void }) {
   if (positions.length == 0) {
     return (<></>);
   }
@@ -41,53 +41,38 @@ export default function FlightMapLine({ flight, positions, colour, selectedFligh
         positions={positions}
         pathOptions={{
           color: colour,
-          weight: 2.5,
+          weight: selected ? 6 : 2.5,
           opacity: 0.3,
-          dashArray: '10, 10',
+          dashArray: selected ? '0, 0' : '10, 10',
           lineCap: 'round',
           lineJoin: 'round',
           interactive: false
         }}
       />
 
-      {selectedFlightId == flight.ACID 
-          ?
-            <>
-              {/* Outer soft glow */}
-              <Polyline
-                positions={positions}
-                pathOptions={{
-                  color: colour,
-                  weight: 14,
-                  opacity: 0.18,
-                  lineCap: 'round',
-                  lineJoin: 'round',
-                  interactive: false
-                }}
-                className="flight-glow"
-              />
+      {selected &&
+        <>
+          {/* Outer soft glow */}
+          <Polyline
+            positions={positions}
+            pathOptions={{
+              color: colour,
+              weight: 14,
+              opacity: 0.18,
+              lineCap: 'round',
+              lineJoin: 'round',
+              interactive: false
+            }}
+            className="flight-glow"
+          />
 
-              {/* Inner softer solid */}
-              <Polyline
-                positions={positions}
-                pathOptions={{
-                  color: colour,
-                  weight: 6,
-                  opacity: 0.25,
-                  lineCap: 'round',
-                  lineJoin: 'round',
-                  interactive: false
-                }}
-              />
-
-              {/* Inject small CSS for the glow blur */}
-              <style dangerouslySetInnerHTML={{__html: `
+          {/* Inject small CSS for the glow blur */}
+          <style dangerouslySetInnerHTML={{
+            __html: `
                 .flight-glow { filter: blur(6px); }
               `}} />
-            </>
-          :
-              <></>
-          }
+        </>
+      }
     </>
   );
 }

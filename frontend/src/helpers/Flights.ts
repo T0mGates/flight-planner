@@ -30,6 +30,7 @@ export function calculateFlightPositions(flight: Flight, airports: AirportDict) 
 interface FlightStatus {
   heading: number
   currentPosition: LatLng
+  atStart: boolean
   atEnd: boolean,
 }
 
@@ -38,7 +39,7 @@ export function calculateFlightStatus(
   flightPositions: LatLng[],
   currentTime: number
 ): FlightStatus {
-  let status: FlightStatus = { heading: 0, currentPosition: new LatLng(0, 0), atEnd: false };
+  let status: FlightStatus = { heading: 0, currentPosition: new LatLng(0, 0), atEnd: false, atStart: false };
   if (!flightPositions) {
     // This shouldn't happen
     return status;
@@ -47,9 +48,9 @@ export function calculateFlightStatus(
 
   if (elapsedSeconds < 0) {
     status.currentPosition = flightPositions[0];
+    status.atStart = true;
     return status
   }
-
 
   // Keep track of how long the plane would have been in the air for
   let timeAccumulated = 0;
