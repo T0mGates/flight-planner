@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Bot, User, Loader2, Terminal } from "lucide-react";
+import { Send, Bot, User, Loader2, Terminal, X } from "lucide-react"; // Added X icon
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query"; // Added import
+import { useQuery } from "@tanstack/react-query";
 import logo from "../../assets/plane_logo.png";
 
 interface Message {
@@ -14,7 +14,6 @@ interface SchedulerChatProps {
     uuid: string;
 }
 
-// Interface to match your status endpoint
 interface StatusData {
     status: string;
 }
@@ -31,7 +30,6 @@ export default function SchedulerChat({ uuid }: SchedulerChatProps) {
         scrollEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
-    // 1. Poll for status using the same logic as AnalysisStatus
     const { data: statusData } = useQuery<StatusData>({
         queryKey: ["jobStatus", uuid],
         queryFn: async () => {
@@ -39,12 +37,11 @@ export default function SchedulerChat({ uuid }: SchedulerChatProps) {
             if (!response.ok) throw new Error("Status check failed");
             return response.json();
         },
-        enabled: !!uuid && !schedulingData, // Only poll if we have a uuid and don't have data yet
+        enabled: !!uuid && !schedulingData,
         refetchInterval: (query) =>
             query.state.data?.status === "completed" ? false : 2000,
     });
 
-    // 2. Fetch scheduling data ONLY when status is "completed"
     useEffect(() => {
         const fetchSchedulingData = async () => {
             if (!uuid || statusData?.status !== "completed") return;
@@ -71,7 +68,7 @@ export default function SchedulerChat({ uuid }: SchedulerChatProps) {
         };
 
         fetchSchedulingData();
-    }, [uuid, statusData?.status]); // Runs when uuid changes or status becomes completed
+    }, [uuid, statusData?.status]);
 
     useEffect(() => {
         scrollToBottom();
@@ -133,15 +130,24 @@ export default function SchedulerChat({ uuid }: SchedulerChatProps) {
     }
 
     return (
-        <div className="w-80 h-96  origin-bottom animate-in fade-in slide-in-from-bottom duration-300">
+        <div className="w-80 h-96 origin-bottom animate-in fade-in slide-in-from-bottom duration-300">
             <Card className="w-full h-full flex flex-col shadow-2xl border-zinc-800 bg-zinc-950/50 backdrop-blur-md text-zinc-50 overflow-hidden">
 
                 <CardHeader className="py-3 px-4 border-b border-zinc-900 flex-none">
-                    <div className="flex items-center gap-2">
-                        <Terminal size={16} className="text-blue-500" />
-                        <CardTitle className="text-lg font-bold tracking-tight text-white">
-                            AI Scheduler Chat
-                        </CardTitle>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Terminal size={16} className="text-blue-500" />
+                            <CardTitle className="text-lg font-bold tracking-tight text-white">
+                                AI Scheduler Help
+                            </CardTitle>
+                        </div>
+                        {/* Close Button */}
+                        <button
+                            onClick={() => setIsOpen(false)}
+                            className="!bg-transparent border-none p-0 text-zinc-500 hover:text-white transition-colors"
+                        >
+                            <X size={18} />
+                        </button>
                     </div>
                 </CardHeader>
 
@@ -184,7 +190,6 @@ export default function SchedulerChat({ uuid }: SchedulerChatProps) {
                                 </div>
                             ))}
 
-                            {/* Show loading state while polling or fetching final data */}
                             {(isLoading || (statusData && statusData.status !== "completed")) && (
                                 <div className="flex gap-3 flex-row items-center animate-pulse">
                                     <div className="h-7 w-7 rounded border border-blue-500/30 bg-blue-500/10 flex items-center justify-center">
@@ -224,4 +229,4 @@ export default function SchedulerChat({ uuid }: SchedulerChatProps) {
             </Card>
         </div>
     );
-}
+}   
