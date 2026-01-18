@@ -47,6 +47,14 @@ export default function TimeControls({
 
   // Handle slider change - convert hours back to unix seconds
   const handleSliderChange = (value: number[]) => {
+    // Stop playback to avoid being annoying
+    if (isPlaying) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = undefined;
+      }
+      setIsPlaying(false);
+    }
     const newTimeSeconds = startTimeSeconds + (value[0] * timestep);
     setCurrentTimeSeconds(newTimeSeconds);
   };
