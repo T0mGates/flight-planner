@@ -73,7 +73,7 @@ export default function FlightInfoCard({ flights, selectedId, onSelect, filters,
                       <div className="flex flex-col items-center bg-blue-500/5 border border-blue-500/10 rounded px-2 py-1">
                         <span className="text-[11px] font-mono font-bold text-blue-400 leading-none">
                           {typeof flight.departure_time === 'number'
-                            ? new Date(flight.departure_time * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+                            ? new Date(flight.departure_time * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
                             : '00:00'}
                         </span>
                         <span className="text-[9px] font-mono text-zinc-500 mt-0.5 leading-none">
