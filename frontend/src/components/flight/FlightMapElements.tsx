@@ -41,7 +41,7 @@ export default function FlightMapElements({ flight, airports, selectedFlightId, 
       {
         // Don't show the airplane after it lands (to reduce visual clutter)
         !flightStatus.atEnd &&
-        <PlaneMarker position={flightStatus.currentPosition} heading={flightStatus.heading} />
+        <PlaneMarker position={flightStatus.currentPosition} heading={flightStatus.heading} colour={colour} />
       }
     </>
   );
