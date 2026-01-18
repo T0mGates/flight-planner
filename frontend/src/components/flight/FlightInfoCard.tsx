@@ -26,8 +26,8 @@ export default function FlightInfoCard({ flights, selectedId, onSelect, filters,
         <FlightFiltersCard filters={filters} setFilters={setFilters} isFetching={isFetching} />
       </CardHeader>
 
-      <CardContent className="pt-4 bg-transparent">
-        <ScrollArea className="h-125 pr-4">
+      <CardContent className="p-0 bg-transparent flex-1 min-h-0 overflow-hidden">
+        <ScrollArea className="h-full px-4 pr-4">
           <div className="flex flex-col gap-4">
             {flights.map((flight) => (
               <div
