@@ -4,7 +4,6 @@ from backend.scheduler.models import FlightSchedule
 
 import pandas as pd
 
-#TODO: fix
 def compare_schedules(new_schedule, old_schedule):
     """
     Compares two flight schedules, analyzing delays and collision improvements.
@@ -75,8 +74,10 @@ def compare_schedules(new_schedule, old_schedule):
         #"flights": flights,
         "mean_delay": avg_delay,
         #"optimization_changes": changes,
-        "active_conflicts": new_collisions, # Matches 'Active Conflicts' in your React code
-        "total_conflicts": old_collisions   # Matches 'Total Conflicts' in your React code
+        "new_num_conflicts": new_collisions, 
+        "old_num_conflicts": old_collisions,  
+        "old_flight_schedule": old_schedule,
+        "optimized_flight_schedule": new_schedule
     }
     
     return formatted_dict

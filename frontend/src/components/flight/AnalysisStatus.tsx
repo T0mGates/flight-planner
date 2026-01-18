@@ -85,7 +85,7 @@ export default function AnalysisStatus({ id, seeNewChanges, setSeeNewChanges, ap
 
       {/* Metrics Grid */}
       <div className="grid grid-cols-2 gap-y-3 gap-x-4 mb-3">
-        <div className="flex flex-col">
+        <div className="flex flex-col text-left">
           <span className="text-[8px] text-zinc-500 uppercase font-bold">Solved | Conflicts</span>
           <span className="text-xs font-mono text-zinc-200">
             {Number.isInteger(data["Total Conflicts"]) && Number.isInteger(data["Active Conflicts"])
@@ -101,15 +101,15 @@ export default function AnalysisStatus({ id, seeNewChanges, setSeeNewChanges, ap
           <span className="text-[8px] text-zinc-500 uppercase font-bold">Changes</span>
           <span className="text-xs font-mono text-blue-400">+{Number.isInteger(data["Optimization Changes"]) ? data["Optimization Changes"] : 0}</span>
         </div>
-        <div className="flex flex-col">
+        <div className="flex flex-col text-left">
           <span className="text-[8px] text-zinc-500 uppercase font-bold">Iteration</span>
           <span className="text-xs font-mono text-zinc-200">
             {data["Current Iteration"]} <span className="text-zinc-600 text-[10px]">of {data["Total Iterations"]}</span>
           </span>
         </div>
-        <div className="flex flex-col items-end">
+        <div className="flex flex-col items-end text-right">
           <span className="text-[8px] text-zinc-500 uppercase font-bold">Status</span>
-          <span className="text-xs font-mono text-zinc-200 capitalize">{data.status}</span>
+          <span className="text-xs font-mono text-zinc-200 capitalize">{data.status + (data["Current Iteration"] < data["Total Iterations"] ? " Early" : "")}</span>
         </div>
       </div>
 
