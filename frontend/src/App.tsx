@@ -173,28 +173,48 @@ function App() {
 
       {/* Top Left Analysis Button, or if a worker is active, separate component */}
       <div className="absolute top-3 left-14 z-1000">
-        {workerId
-          ?
+        {workerId ? (
           <AnalysisStatus id={workerId} />
-          :
-          <button
+        ) : (
+          <motion.button
             onClick={() => triggerAnalysis()}
             disabled={isAnalyzing || analysisStarted}
+            // Pulse animation logic
+            animate={!(isAnalyzing || analysisStarted) ? {
+              boxShadow: [
+                "0 0 0px rgba(59, 130, 246, 0)",
+                "0 0 20px rgba(59, 130, 246, 0.4)",
+                "0 0 0px rgba(59, 130, 246, 0)"
+              ],
+              borderColor: [
+                "rgba(39, 39, 42, 1)",      // border-zinc-800
+                "rgba(59, 130, 246, 0.8)",  // blue-500
+                "rgba(39, 39, 42, 1)"
+              ]
+            } : {}}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
             className={`
-              group relative flex items-center gap-3 px-4 py-2.5 rounded-xl border transition-all duration-300
-              backdrop-blur-md font-bold uppercase text-[10px] tracking-widest outline-none
-              ${isAnalyzing || analysisStarted
+        group relative flex items-center gap-3 px-4 py-2.5 rounded-xl border transition-all duration-300
+        backdrop-blur-md font-bold uppercase text-[10px] tracking-widest outline-none
+        ${isAnalyzing || analysisStarted
                 ? "bg-blue-500/10 border-blue-500/50 text-blue-400 cursor-wait"
-                : "bg-zinc-950/90 border-zinc-800 text-white hover:border-blue-500/50"
+                : "bg-zinc-950/90 text-white hover:text-blue-400"
               }
-            `}
+      `}
           >
             {/* Icon Logic */}
             <div className="relative flex items-center justify-center">
               {isAnalyzing || analysisStarted ? (
                 <Loader2 size={16} className="animate-spin" />
               ) : (
-                <Play size={16} className="fill-current group-hover:scale-110 transition-transform" />
+                <Play
+                  size={16}
+                  className="group-hover:scale-110 transition-transform"
+                />
               )}
             </div>
 
@@ -203,9 +223,8 @@ function App() {
                 {isAnalyzing || analysisStarted ? "Analyzing schedule..." : "Start Analysis"}
               </span>
             </div>
-          </button>
-        }
-
+          </motion.button>
+        )}
       </div>
 
     </div>
