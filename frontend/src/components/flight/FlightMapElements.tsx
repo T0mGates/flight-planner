@@ -36,14 +36,15 @@ export default function FlightMapElements({ flight, airports, selectedFlightId, 
   const flightStatus = calculateFlightStatus(flight, positions, currentTime);
   const selected = flight.ACID == selectedFlightId;
 
+  // Don't render anything for the flight if it isn't in flight at the current moment
+  if (flightStatus.atStart || flightStatus.atEnd) {
+    return (<></>)
+  }
+
   return (
     <>
       <FlightMapLine flight={flight} positions={positions} colour={colour} onSelect={onSelect} selected={selected} />
-      {
-        // Don't show the airplane after it lands (to reduce visual clutter)
-        !flightStatus.atEnd && !flightStatus.atStart &&
-        <PlaneMarker position={flightStatus.currentPosition} heading={flightStatus.heading} colour={colour} selected={selected} />
-      }
+      <PlaneMarker position={flightStatus.currentPosition} heading={flightStatus.heading} colour={colour} selected={selected} />
     </>
   );
 }
