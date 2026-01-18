@@ -109,7 +109,7 @@ export default function AnalysisStatus({ id, seeNewChanges, setSeeNewChanges, ap
         </div>
         <div className="flex flex-col items-end text-right">
           <span className="text-[8px] text-zinc-500 uppercase font-bold">Status</span>
-          <span className="text-xs font-mono text-zinc-200 capitalize">{data.status + (data["Current Iteration"] < data["Total Iterations"] ? " Early" : "")}</span>
+          <span className="text-xs font-mono text-zinc-200 capitalize">{data.status + ((data["Current Iteration"] < data["Total Iterations"]) && data.status == "Completed" ? " Early" : "")}</span>
         </div>
       </div>
 
