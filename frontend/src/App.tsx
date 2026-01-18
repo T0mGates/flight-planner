@@ -11,6 +11,7 @@ import { type Flight } from "./helpers/Types";
 import TimeControls from './components/flight/TimeControls.tsx';
 import { getFirstFlight, getLastFlight } from './helpers/Flights.ts';
 import AnalysisStatus from './components/flight/AnalysisStatus.tsx';
+import logo from './assets/plane_logo.png';
 
 // Fetch with filters
 const fetchFlights = async ({ queryKey }: any): Promise<Record<string, Flight>> => {
@@ -135,7 +136,21 @@ function App() {
 
   return (
     <div className="relative w-screen h-screen">
-      <TimeControls startTimeSeconds={earliestFlightTime} endTimeSeconds={latestFlightTime} currentTimeSeconds={currentDisplayTime} setCurrentTimeSeconds={setCurrentDisplayTime} timestep={60} intervalTimeout={50}></TimeControls>
+      <div className="absolute bottom-4 left-4 z-[1000] flex flex-col items-start gap-2">
+        <img
+          src={logo}
+          alt="Logo"
+          className="h-30 w-auto object-contain mb-28 opacity-50"
+        />
+        <TimeControls
+          startTimeSeconds={earliestFlightTime}
+          endTimeSeconds={latestFlightTime}
+          currentTimeSeconds={currentDisplayTime}
+          setCurrentTimeSeconds={setCurrentDisplayTime}
+          timestep={60}
+          intervalTimeout={50}
+        />
+      </div>
       <Map flights={Object.values(flightData ?? {})} airports={airportData ?? {}} selectedFlightId={selectedId ?? null} onSelectFlight={handleSelect} currentTime={currentDisplayTime} />
       <div className="absolute top-4 right-4 w-96 h-[calc(100vh-2rem)] z-1000 flex flex-col gap-4">
         <AnimatePresence mode="popLayout">
