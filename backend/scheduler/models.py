@@ -6,6 +6,9 @@ import pandas as pd
 from datetime import datetime
 import os
 
+from backend.scheduler.constants import TRANSLATION
+
+REVERSE_TRANSLATION = {v: k for k, v in TRANSLATION.items()}
 
 @dataclass
 class FlightSegment:
@@ -125,6 +128,11 @@ class Flight:
     def total_duration_sec(self) -> float:
         """Total flight duration"""
         return sum(seg.duration_sec for seg in self.segments)
+    
+    def airports_as_names(self) -> Tuple[str, str]:
+        """Return departure and arrival airport codes"""
+        return (REVERSE_TRANSLATION.get(self.departure_airport), 
+                REVERSE_TRANSLATION.get(self.arrival_airport))
     
     def get_position_at_time(self, timestamp: datetime) -> Optional[Tuple[np.ndarray, float]]:
         """
@@ -590,9 +598,10 @@ class FlightSchedule:
         from backend.models import Flight as DBFlight
         db_flights = []
         for flight in self.flights:
+            dep, arr = flight.airports_as_names()
             db_flight = DBFlight(
-                departure_airport=flight.departure_airport,
-                arrival_airport=flight.arrival_airport,
+                departure_airport=dep,
+                arrival_airport=arr,
                 route=flight.route,
                 ACID=flight.acid,
                 plane_type=flight.plane_type,
