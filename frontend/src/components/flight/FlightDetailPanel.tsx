@@ -35,7 +35,7 @@ export default function FlightDetailPanel({ flight, onClose }: FlightDetailPanel
 
                 <div className="flex flex-col gap-0.5">
                     <div className="flex items-center gap-1.5">
-                        <Users size={12} className="text-zinc-500 shrink-0" />
+                        <Users size={12} className={`${flight.passengers <= 170 ? "text-emerald-500" : flight.passengers <= 235 ? "text-orange-500" : "text-red-500"} shrink-0`} />
                         <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Passengers</span>
                     </div>
                     <span className="text-sm font-semibold">{flight.passengers}</span>
@@ -43,7 +43,7 @@ export default function FlightDetailPanel({ flight, onClose }: FlightDetailPanel
 
                 <div className="flex flex-col gap-0.5">
                     <div className="flex items-center gap-1.5">
-                        <Package size={12} className={`${flight.is_cargo ? "text-emerald-500" : "text-zinc-500"} shrink-0`} />
+                        <Package size={12} className={`${flight.is_cargo ? "text-emerald-500" : "text-red-500"} shrink-0`} />
                         <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest">Cargo</span>
                     </div>
                     <span className="text-sm font-semibold">{flight.is_cargo ? "Enabled" : "Disabled"}</span>

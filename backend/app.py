@@ -40,7 +40,12 @@ async def get_flights(
     origin:         Optional[str] = None,
     destination:    Optional[str] = None
 ):
-    filters = FlightFilters(start=start, end=end, origin=origin, destination=destination)
+    start       = start.strip()                 if start        else None
+    end         = end.strip()                   if end          else None
+    origin      = origin.strip().upper()        if origin       else None
+    destination = destination.strip().upper()   if destination  else None
+
+    filters     = FlightFilters(start=start, end=end, origin=origin, destination=destination)
     log.debug(f"Received filters: start = {start}, end = {end}, origin = {origin}, destination = {destination}")
     return database.get_flights(filters=filters)
 
