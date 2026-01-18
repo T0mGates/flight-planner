@@ -13,6 +13,7 @@ from backend.scheduler.optimization_worker import optimizer_worker
 from backend.scheduler.work_queue       import queue, job_status
 from contextlib import asynccontextmanager
 from backend.scheduler.comparator      import compare_by_acids
+from backend.scheduler.models         import FlightSchedule
 
 
 init_fast_api_sentry()
@@ -189,7 +190,35 @@ async def get_job_flight_results(
 
     return ret_dict
 
-@app.get("/compare_flights/{uuid}")
+@app.get("/apply_optimization/{uuid}")
+def apply_optimization(uuid: str):
+    job = job_status.get(uuid)
+
+    if not job:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Job with id: {uuid} does not exist"
+        )
+    
+    if job['status'] != 'completed':
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Job with id: {uuid} is not yet completed"
+        )
+    
+    optimized_schedule = job['result']
+    optimized_schedule = FlightSchedule.from_api_dict(optimized_schedule, needs_airport_translation=True)
+    
+    database.clear_flights()
+    
+    flights = []
+    for flight in optimized_schedule.to_database_flight():
+        flights.append(flight)
+        database.add_flight(flight)
+    
+    return {"message": f"Applied optimization with {len(flights)} flights to database."}
+
+@app.get("/compare_flights/{uuid}/ai")
 def compare_flights(uuid: str):
     job = job_status.get(uuid)
 

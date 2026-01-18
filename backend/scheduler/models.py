@@ -397,7 +397,7 @@ class FlightSchedule:
         return cls.from_api_dict(api_data)
     
     @classmethod
-    def from_api_dict(cls, api_data: dict) -> 'FlightSchedule':
+    def from_api_dict(cls, api_data: dict, needs_airport_translation: bool = False) -> 'FlightSchedule':
         """
         Load flight schedule from API dictionary format.
         
@@ -431,6 +431,7 @@ class FlightSchedule:
         
         # Helper function for ECEF conversion
         def get_ecef_from_coord(coord_str: str, altitude_ft: float) -> np.ndarray:
+                        
             lat_str, lon_str = coord_str.split('/')
             
             def parse_coord(val: str) -> float:
@@ -463,6 +464,10 @@ class FlightSchedule:
             route_str = flight_data['route']
             dep_airport = flight_data['departure_airport']
             arr_airport = flight_data['arrival_airport']
+            
+            if needs_airport_translation:
+                dep_airport = TRANSLATION.get(dep_airport, 'NA')
+                arr_airport = TRANSLATION.get(arr_airport, 'NA')
             
             # Handle both single values and lists for altitude/speed
             altitudes = flight_data['altitude']

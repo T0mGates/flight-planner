@@ -123,3 +123,7 @@ class Database():
     @classmethod
     def get_all_flights(cls)->dict[int, Flight]:
         return cls._flight_data
+    
+    @classmethod
+    def clear_flights(cls):
+        cls._flight_data = {}
