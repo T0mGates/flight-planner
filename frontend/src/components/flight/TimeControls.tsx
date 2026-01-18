@@ -56,6 +56,18 @@ export default function TimeControls({
     setCurrentTimeSeconds(newTimeSeconds);
   };
 
+  const intervalFunction = () => {
+    setCurrentTimeSeconds((time: number) => {
+      if (time + timestep >= endTimeSeconds) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = undefined;
+        setIsPlaying(false);
+        return endTimeSeconds;
+      }
+      return time + timestep
+    });
+  }
+
   const handleClick = () => {
     if (isPlaying) {
       if (intervalRef.current) {
@@ -64,9 +76,7 @@ export default function TimeControls({
       }
       setIsPlaying(false);
     } else {
-      intervalRef.current = window.setInterval(() => {
-        setCurrentTimeSeconds((time: number) => time + timestep);
-      }, intervalTimeout);
+      intervalRef.current = setInterval(intervalFunction, intervalTimeout);
       setIsPlaying(true);
     }
   };
