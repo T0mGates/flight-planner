@@ -25,11 +25,11 @@ export function parseSingleLatLong(position: string) {
   const [latStr, lngStr] = position.split('/');
 
   if (!latStr.match(/^[\d.]+[NS]$/i)) {
-    throw new RouteParseError(`Invalid latitude format: "${latStr}". Expected format: "50.77N" or "50.77S"`);
+    throw new RouteParseError(`Invalid latitude format: "${latStr}"`);
   }
 
   if (!lngStr.match(/^[\d.]+[EW]$/i)) {
-    throw new RouteParseError(`Invalid longitude format: "${lngStr}". Expected format: "115.66W" or "115.66E"`);
+    throw new RouteParseError(`Invalid longitude format: "${lngStr}"`);
   }
 
   const latValue = parseFloat(latStr);

@@ -1,6 +1,7 @@
 import './App.css';
 
 import { Play, Loader2 } from "lucide-react";
+import * as Sentry from "@sentry/react";
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from '@tanstack/react-query';
@@ -36,10 +37,10 @@ const fetchFlights = async ({ queryKey }: any): Promise<Record<string, Flight>> 
   if (filters.origin) params.append("origin", filters.origin.toUpperCase());
   if (filters.destination) params.append("destination", filters.destination.toUpperCase());
 
-  const toFetch  = seeNewChanges && workerId != null
-  ? 
+  const toFetch = seeNewChanges && workerId != null
+    ?
     `http://localhost:8000/job_status/${workerId}/flight_results?${params.toString()}`
-  :
+    :
     `http://localhost:8000/flights?${params.toString()}`
   const response = await fetch(toFetch);
 
@@ -49,9 +50,8 @@ const fetchFlights = async ({ queryKey }: any): Promise<Record<string, Flight>> 
 
 const fetchFlightDiffs = async ({ queryKey }: any): Promise<Record<string, FlightDiff>> => {
   const [_key, filters, seeNewChanges, workerId] = queryKey;
-  
-  if(!seeNewChanges || null == workerId)
-  {
+
+  if (!seeNewChanges || null == workerId) {
     return {};
   }
 
@@ -115,6 +115,7 @@ function App() {
 
   const {
     data: analysisData,
+    error: analysisStartError,
     isFetching: isAnalyzing,
     refetch: triggerAnalysis,
     isSuccess: analysisStarted
@@ -124,6 +125,13 @@ function App() {
     enabled: false, // Prevents automatic execution on mount
     retry: false,
   });
+
+  // Put into useEffect to avoid double call in strict mode
+  useEffect(() => {
+    if (flightError) {
+      Sentry.captureException(analysisStartError);
+    }
+  }, [analysisStartError]);
 
   let workerId = null;
   if (analysisStarted) {
@@ -138,7 +146,6 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // TODO: handle errors
   const { data: flightData, isLoading: flightsLoading, error: flightError, isFetching: isFetchingFlights } = useQuery({
     queryKey: ['flights', filters, seeNewChanges, workerId],
     queryFn: fetchFlights,
@@ -152,12 +159,25 @@ function App() {
     refetchInterval: 10000,
   });
 
-  // TODO: handle errors
+  // Put into useEffect to avoid double call in strict mode
+  useEffect(() => {
+    if (flightError) {
+      Sentry.captureException(flightError);
+    }
+  }, [flightError]);
+
   const { data: airportData, isLoading: airportsLoading, error: airportError } = useQuery({
     queryKey: ['airports'],
     queryFn: fetchAirports,
     refetchInterval: 100000, // 100 seconds in milliseconds
   });
+
+  // Put into useEffect to avoid double call in strict mode
+  useEffect(() => {
+    if (airportError) {
+      Sentry.captureException(airportError);
+    }
+  }, [airportError]);
 
   const { data: selectedFlight } = useQuery<Flight | null, Error>({
     queryKey: ['flight', selectedId],
@@ -199,15 +219,15 @@ function App() {
         </div>
 
         {/* The Time Controls stay at the bottom */}
-          <div className="pointer-events-auto">
-            <TimeControls
-              startTimeSeconds={earliestFlightTime}
-              endTimeSeconds={latestFlightTime}
-              currentTimeSeconds={currentDisplayTime}
-              setCurrentTimeSeconds={setCurrentDisplayTime}
-              timestep={60}
-              intervalTimeout={50}
-            />
+        <div className="pointer-events-auto">
+          <TimeControls
+            startTimeSeconds={earliestFlightTime}
+            endTimeSeconds={latestFlightTime}
+            currentTimeSeconds={currentDisplayTime}
+            setCurrentTimeSeconds={setCurrentDisplayTime}
+            timestep={60}
+            intervalTimeout={50}
+          />
         </div>
       </div>
       <Map
