@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Play, Pause } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import logo from '../../assets/plane_logo.png';
@@ -22,6 +22,7 @@ interface TimeControlsProps {
   currentTimeSeconds: number; // Current time as unix timestamp
   setCurrentTimeSeconds: (time: number) => void; // Setter for current time
   timestep: number, // timestep for controls in seconds
+  intervalTimeout: number // the time to wait for each timestep when playing flights
 }
 
 export default function TimeControls({
@@ -30,9 +31,11 @@ export default function TimeControls({
   currentTimeSeconds,
   setCurrentTimeSeconds,
   timestep,
+  intervalTimeout,
 }: TimeControlsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const intervalRef = useRef<number | undefined>(undefined);
 
   const startTime = formatTime(startTimeSeconds);
   const endTime = formatTime(endTimeSeconds);
@@ -47,6 +50,36 @@ export default function TimeControls({
     const newTimeSeconds = startTimeSeconds + (value[0] * timestep);
     setCurrentTimeSeconds(newTimeSeconds);
   };
+
+  const intervalFunction = () => {
+    setCurrentTimeSeconds((time: number) => {
+      return time + timestep
+    });
+  }
+
+  const handleClick = () => {
+    if (isPlaying) {
+      // Stop the interval
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = undefined;
+      }
+      setIsPlaying(false);
+    } else {
+      // Start the interval
+      intervalRef.current = setInterval(intervalFunction, intervalTimeout);
+      setIsPlaying(true);
+    }
+  };
+
+  // Clean up interval on unmount
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="absolute bottom-3 left-0 z-[1000] flex items-center gap-0">
@@ -108,7 +141,7 @@ export default function TimeControls({
 
             {/* Play/Pause button */}
             <button
-              onClick={() => setIsPlaying(!isPlaying)}
+              onClick={handleClick}
               style={{ minWidth: '40px', minHeight: '40px' }}
               className="flex items-center justify-center bg-zinc-900"
             >

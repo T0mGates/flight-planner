@@ -110,7 +110,7 @@ function App() {
 
   return (
     <div className="relative w-screen h-screen">
-      <TimeControls startTimeSeconds={earliestFlightTime} endTimeSeconds={latestFlightTime} currentTimeSeconds={currentDisplayTime} setCurrentTimeSeconds={setCurrentDisplayTime} timestep={60}></TimeControls>
+      <TimeControls startTimeSeconds={earliestFlightTime} endTimeSeconds={latestFlightTime} currentTimeSeconds={currentDisplayTime} setCurrentTimeSeconds={setCurrentDisplayTime} timestep={60} intervalTimeout={50}></TimeControls>
       <Map flights={Object.values(flightData ?? {})} airports={airportData ?? {}} selectedFlightId={selectedId ?? -1} onSelectFlight={handleSelect} currentTime={currentDisplayTime} />
       <div className="absolute top-4 right-4 w-96 h-[calc(100vh-2rem)] z-1000 flex flex-col gap-4">
         <AnimatePresence mode="popLayout">
