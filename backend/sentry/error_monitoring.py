@@ -1,5 +1,4 @@
 import sentry_sdk
-from sentry_sdk.integrations.google_genai import GoogleGenAIIntegration
 
 
 def init_fast_api_sentry() -> None:
@@ -23,7 +22,5 @@ def init_fast_api_sentry() -> None:
         send_default_pii=True,
         # Enable sending logs to Sentry
         enable_logs=True,
-        integrations=[
-            GoogleGenAIIntegration(),
-        ],
+        # OpenAI integration should just work
     )
