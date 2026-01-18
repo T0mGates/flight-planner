@@ -58,7 +58,7 @@ export function calculateFlightStatus(
     const segmentEnd = flightPositions[i + 1];
 
     // Convert speed from knots to km/h
-    const speedKmh = flight.aircraft_speed * 1.852;
+    const speedKmh = flight.aircraft_speed[i] * 1.852;
 
     // Calculate distance for this segment, in meters (convert to km)
     const segmentDistance = segmentStart.distanceTo(segmentEnd) / 1000;
@@ -116,7 +116,7 @@ export function getLastFlight(flights: Flight[], airports: AirportDict) {
       const segmentEnd = positions[i + 1];
 
       // Convert speed from knots to km/h
-      const speedKmh = flight.aircraft_speed * 1.852;
+      const speedKmh = flight.aircraft_speed[i] * 1.852;
       const segmentDistance = segmentStart.distanceTo(segmentEnd) / 1000;
       timeAccumulated += (segmentDistance / speedKmh) * 3600;
     }
