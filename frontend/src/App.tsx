@@ -132,6 +132,12 @@ function App() {
 
   // Need start and end times for all flights, for all flights that are loaded
   const [currentDisplayTime, setCurrentDisplayTime] = useState(0);
+  // When we load data, provide a sensible current time that's not the Unix epoch
+  useEffect(() => {
+    if (flightData) {
+      setCurrentDisplayTime(getFirstFlight(Object.values(flightData)));
+    }
+  }, [flightData]);
   const earliestFlightTime = getFirstFlight(Object.values(flightData ?? {}));
   const latestFlightTime = getLastFlight(Object.values(flightData ?? {}), airportData ?? {});
 
