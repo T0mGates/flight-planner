@@ -64,6 +64,23 @@ async def get_flights(
     log.debug(f"Received filters: start = {start}, end = {end}, origin = {origin}, destination = {destination}")
     return database.get_flights(filters=filters)
 
+@app.get("/flights/test")
+async def get_flights_test(
+    # These are (optional) query params
+    start:          Optional[str] = None, 
+    end:            Optional[str] = None,
+    origin:         Optional[str] = None,
+    destination:    Optional[str] = None
+):
+    start       = start.strip()                 if start        else None
+    end         = end.strip()                   if end          else None
+    origin      = origin.strip().upper()        if origin       else None
+    destination = destination.strip().upper()   if destination  else None
+
+    filters     = FlightFilters(start=start, end=end, origin=origin, destination=destination)
+    log.debug(f"Received filters: start = {start}, end = {end}, origin = {origin}, destination = {destination}")
+    return database.get_flights(filters=filters)
+
 @app.post("/flights")
 def create_flight(flight: Flight):
     if not database.add_flight(flight=flight):
@@ -134,7 +151,14 @@ def get_job_status(job_id: str):
     return job_copy
 
 @app.get("/job_status/{job_id}/flight_results")
-def get_job_flight_results(job_id: str):
+async def get_job_flight_results(
+    job_id:         str,
+    # These are (optional) query params
+    start:          Optional[str] = None, 
+    end:            Optional[str] = None,
+    origin:         Optional[str] = None,
+    destination:    Optional[str] = None
+):
     job = job_status.get(job_id)
 
     if not job:
@@ -149,4 +173,19 @@ def get_job_flight_results(job_id: str):
             detail=f"Job with id: {job_id} is not yet completed"
         )
     
-    return job['result']
+    results = job['result']
+    
+    start       = start.strip()                 if start        else None
+    end         = end.strip()                   if end          else None
+    origin      = origin.strip().upper()        if origin       else None
+    destination = destination.strip().upper()   if destination  else None
+
+    filters     = FlightFilters(start=start, end=end, origin=origin, destination=destination)
+    log.debug(f"Received filters: start = {start}, end = {end}, origin = {origin}, destination = {destination}")
+    flights = database.get_flights(filters=filters)
+
+    ret_dict = {}
+    for acid in flights.keys():
+        ret_dict[acid] = results[acid]
+
+    return ret_dict

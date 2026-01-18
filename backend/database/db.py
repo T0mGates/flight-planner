@@ -34,9 +34,10 @@ class Database():
         return True
 
     @classmethod
-    def get_flights(cls, filters: FlightFilters)->dict[int, Flight]:
+    def get_flights(cls, filters: FlightFilters, reverse: bool = False)->dict[int, Flight]:
         to_ret = {}
-        for flight in cls._flight_data.values():
+        l = reversed(list(cls._flight_data.values())) if reverse else cls._flight_data.values()
+        for flight in l:
             if(cls.include_flight_based_off_filter(flight_acid=flight["ACID"], filters=filters)):
                 to_ret[flight["ACID"]] = flight
 

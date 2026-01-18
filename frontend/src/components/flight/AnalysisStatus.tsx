@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Activity, CheckCircle2, AlertCircle, ArrowRight } from "lucide-react";
+import { Activity, CheckCircle2, AlertCircle, ArrowRight, ArrowLeft, Save } from "lucide-react";
 
 interface StatusData {
   status: string;
@@ -14,7 +14,14 @@ interface StatusData {
   "Optimization Changes": number;
 }
 
-export default function AnalysisStatus({ id }: { id: string }) {
+export interface AnalysisStatusProps
+{
+  id: string;
+  seeNewChanges: boolean;
+  setSeeNewChanges: (seeNewChanges: boolean) => void;
+}
+
+export default function AnalysisStatus({ id, seeNewChanges, setSeeNewChanges }: AnalysisStatusProps) {
   const { data, error } = useQuery<StatusData>({
     queryKey: ["analysisStatus", id],
     queryFn: async () => {
@@ -111,23 +118,42 @@ export default function AnalysisStatus({ id }: { id: string }) {
 
         {/* Centered Action Button */}
         <AnimatePresence>
-          {isCompleted && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              className="flex justify-center w-full"
-            >
-              <button
-                onClick={() => console.log("Finalizing changes...")}
-                className="group flex items-center justify-center gap-3 px-8 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-all active:scale-95 w-full"
-              >
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em]">See Changes</span>
-                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+  {isCompleted && (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 10 }}
+      className="flex flex-row gap-2 justify-center w-full"
+    >
+      <button
+        onClick={() => console.log("Applying changes...")}
+        className="flex-1 group flex items-center justify-center gap-1 px-1 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all active:scale-95"
+      >
+        <span className="text-[7px] font-bold uppercase tracking-wider whitespace-nowrap">Apply Changes</span>
+        <Save size={12} className="group-hover:translate-x-0.5 transition-transform shrink-0" />
+      </button>
+
+      {seeNewChanges
+      ?
+        <button
+          onClick={() => setSeeNewChanges(false)}
+          className="flex-1 group flex items-center justify-center gap-1 px-1 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all active:scale-95"
+        >
+          <ArrowLeft size={12} className="group-hover:-translate-x-0.5 transition-transform shrink-0" />
+          <span className="text-[7px] font-bold uppercase tracking-wider whitespace-nowrap">See Original</span>
+        </button>
+      :
+        <button
+          onClick={() => setSeeNewChanges(true)}
+          className="flex-1 group flex items-center justify-center gap-1 px-1 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all active:scale-95"
+        >
+          <span className="text-[7px] font-bold uppercase tracking-wider whitespace-nowrap">See Changes</span>
+          <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform shrink-0" />
+       </button>
+      }
+    </motion.div>
+  )}
+</AnimatePresence>
       </div>
     </motion.div>
   );

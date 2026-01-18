@@ -15,7 +15,7 @@ import logo from './assets/plane_logo.png';
 
 // Fetch with filters
 const fetchFlights = async ({ queryKey }: any): Promise<Record<string, Flight>> => {
-  const [_key, filters] = queryKey;
+  const [_key, filters, seeNewChanges, workerId] = queryKey;
 
   const params = new URLSearchParams();
 
@@ -36,7 +36,12 @@ const fetchFlights = async ({ queryKey }: any): Promise<Record<string, Flight>> 
   if (filters.origin) params.append("origin", filters.origin.toUpperCase());
   if (filters.destination) params.append("destination", filters.destination.toUpperCase());
 
-  const response = await fetch(`http://localhost:8000/flights?${params.toString()}`);
+  const toFetch  = seeNewChanges && workerId != null
+  ? 
+    `http://localhost:8000/job_status/${workerId}/flight_results?${params.toString()}`
+  :
+    `http://localhost:8000/flights?${params.toString()}`
+  const response = await fetch(toFetch);
 
   if (!response.ok) throw new Error('Failed to fetch flight data');
   return response.json();
@@ -71,35 +76,9 @@ function App() {
     destination: ""
   });
 
+  const [seeNewChanges, setSeeNewChanges] = useState(false);
+
   const [selectedId, setSelectedId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setSelectedId(null);
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  // TODO: handle errors
-  const { data: flightData, isLoading: flightsLoading, error: flightError, isFetching: isFetchingFlights } = useQuery({
-    queryKey: ['flights', filters],
-    queryFn: fetchFlights,
-    refetchInterval: 10000,
-  });
-
-  // TODO: handle errors
-  const { data: airportData, isLoading: airportsLoading, error: airportError } = useQuery({
-    queryKey: ['airports'],
-    queryFn: fetchAirports,
-    refetchInterval: 100000, // 100 seconds in milliseconds
-  });
-
-  const { data: selectedFlight } = useQuery<Flight | null, Error>({
-    queryKey: ['flight', selectedId],
-    queryFn: () => fetchFlightById(selectedId),
-    enabled: !!selectedId,
-  });
 
   const {
     data: analysisData,
@@ -117,6 +96,34 @@ function App() {
   if (analysisStarted) {
     workerId = analysisData["job_id"];
   }
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSelectedId(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // TODO: handle errors
+  const { data: flightData, isLoading: flightsLoading, error: flightError, isFetching: isFetchingFlights } = useQuery({
+    queryKey: ['flights', filters, seeNewChanges, workerId],
+    queryFn: fetchFlights,
+    refetchInterval: 10000,
+  });
+
+  // TODO: handle errors
+  const { data: airportData, isLoading: airportsLoading, error: airportError } = useQuery({
+    queryKey: ['airports'],
+    queryFn: fetchAirports,
+    refetchInterval: 100000, // 100 seconds in milliseconds
+  });
+
+  const { data: selectedFlight } = useQuery<Flight | null, Error>({
+    queryKey: ['flight', selectedId],
+    queryFn: () => fetchFlightById(selectedId),
+    enabled: !!selectedId,
+  });
 
   // If select the "old" id, DESELECT it
   const handleSelect = useCallback((acid: string) => {
@@ -136,7 +143,7 @@ function App() {
 
   return (
     <div className="relative w-screen h-screen">
-      <div className="absolute bottom-4 left-4 z-[1000] flex flex-col items-start gap-2">
+      <div className="absolute bottom-4 left-4 z-1000 flex flex-col items-start gap-2">
         <img
           src={logo}
           alt="Logo"
@@ -189,7 +196,7 @@ function App() {
       {/* Top Left Analysis Button, or if a worker is active, separate component */}
       <div className="absolute top-4 left-4 z-1000">
         {workerId ? (
-          <AnalysisStatus id={workerId} />
+          <AnalysisStatus id={workerId} seeNewChanges={seeNewChanges} setSeeNewChanges={setSeeNewChanges} />
         ) : (
           <motion.button
             onClick={() => triggerAnalysis()}
