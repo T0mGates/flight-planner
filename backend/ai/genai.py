@@ -38,7 +38,7 @@ class OpenRouterService:
             base_url="https://openrouter.ai/api/v1",
             api_key=os.getenv("OPENROUTER_API_KEY"),
         )
-        self.model = "google/gemini-3-pro-preview"
+        self.model = "google/gemini-2.0-flash-001"
 
     async def get_chat_response(self, messages: list):
         try:
