@@ -295,7 +295,7 @@ function App() {
           className="flex-1 min-h-0 overflow-hidden pointer-events-auto rounded-xl"
         >
           <FlightInfoCard
-            flights={Object.values(flightData ?? {})}
+            flights={Object.values(flightData ?? {}).slice(0, 100)}
             filters={filters}
             setFilters={handleFilterChange}
             selectedId={selectedId ?? undefined}
