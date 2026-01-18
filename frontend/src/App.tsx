@@ -246,7 +246,7 @@ function App() {
       <div className="absolute bottom-4 left-4 z-1000 flex flex-col gap-4 items-start pointer-events-none">
         {/* The Chat is now physically above the controls in the DOM */}
         <div className="w-80 pointer-events-auto">
-          <SchedulerChat />
+          <SchedulerChat uuid={workerId} />
         </div>
 
         {/* The Time Controls stay at the bottom */}

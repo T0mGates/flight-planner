@@ -2,52 +2,80 @@ import pandas as pd
 
 from backend.scheduler.models import FlightSchedule
 
+import pandas as pd
+
+#TODO: fix
 def compare_schedules(new_schedule, old_schedule):
     """
-    Compares two flight schedules and returns a similarity score.
+    Compares two flight schedules, analyzing delays and collision improvements.
     
     Args:
-        new_schedule (pd.DataFrame): The first flight schedule.
-        old_schedule (pd.DataFrame): The second flight schedule.
+        new_schedule (pd.DataFrame): Optimized schedule.
+        old_schedule (pd.DataFrame): Original schedule.
         
     Returns:
-        float: A similarity score between 0 and 1.
+        tuple: (top_delays, merged_df, delay_count, avg_delay, new_collisions, old_collisions)
     """
     
-    #FORMAT (WILL BE IN DATAFRAME FORM)
     """
-    {"departure_airport":"43.68N/79.63W","arrival_airport":"44.55N/75.22W","route":"44.55N/75.22W","ACID":"ACA101","plane_type":"767F","is_cargo":true,"aircraft_speed":[480.00000000008544,479.99999999999045],"departure_time":1767822240,"altitude":[26000.0,26000.0],"passengers":0,"id":1},
-    """
-    
-    # Merge the schedules on the specified columns
-    merged = pd.merge(new_schedule, old_schedule, on=['departure_airport', 'arrival_airport', 'route', 'ACID', 'plane_type', 'is_cargo'], suffixes=('_1', '_2'))
+    # Ensure inputs are DataFrames (in case dictionaries were passed)
+    df_new = pd.DataFrame(new_schedule) if not isinstance(new_schedule, pd.DataFrame) else new_schedule
+    df_old = pd.DataFrame(old_schedule) if not isinstance(old_schedule, pd.DataFrame) else old_schedule
 
-    # Drop columns from old_schedule that are also in new_schedule (except the merge keys)
-    cols_to_drop = [col + '_2' for col in new_schedule.columns if col not in ['departure_airport', 'arrival_airport', 'route', 'ACID', 'plane_type', 'is_cargo'] and col in old_schedule.columns]
-    merged = merged.drop(columns=cols_to_drop)
-    
-    # Get difference in departure_time
-    merged['departure_time_diff'] = merged['departure_time_1'] - merged['departure_time_2']
-    
-    
-    # Get count of delayed flights
+    # 1. Merge the schedules
+    # We use suffixes to distinguish the departure times: _opt (optimized) and _orig (original)
+    merged = pd.merge(
+        df_new, 
+        df_old, 
+        on=['ACID', 'departure_airport', 'arrival_airport', 'route'], 
+        suffixes=('_opt', '_orig')
+    )
+
+    # 2. Calculate time differences (Positive means the optimized flight is LATER than original)
+    merged['departure_time_diff'] = merged['departure_time_opt'] - merged['departure_time_orig']
+
+    # 3. Identify delays
+    # In scheduling, a 'delay' is often relative to the original plan
     merged['was_delayed'] = merged['departure_time_diff'] > 0
-    delayed = merged['was_delayed'].sum()
-        
-    # Make table of top 10 delays
-    top_delays = merged.nlargest(10, 'departure_time_diff')[['departure_airport', 'arrival_airport', 'route', 'ACID', 'plane_type', 'is_cargo', 'departure_time_diff']]
+    delay_count = int(merged['was_delayed'].sum())
+    avg_delay = merged['departure_time_diff'].mean()
+
+    # 4. Extract Top 10 most significant schedule shifts
+    top_delays = merged.nlargest(10, 'departure_time_diff')[
+        ['ACID', 'departure_airport', 'arrival_airport', 'departure_time_orig', 'departure_time_opt', 'departure_time_diff']
+    ].to_dict(orient='records')
     
-    # Create flight schedules from dataframes
-    new_flight_schedule = FlightSchedule.from_compact_dataframe(new_schedule)
-    old_flight_schedule = FlightSchedule.from_compact_dataframe(old_schedule)
+
+    # 5. Collision Analysis
+    # Note: We pass the original DataFrames to your FlightSchedule class
+    new_flight_schedule = FlightSchedule.from_api_dict(new_schedule, needs_airport_translation=True)
+    old_flight_schedule = FlightSchedule.from_api_dict(old_schedule, needs_airport_translation=True)
     
-    # Get number of collisions in each schedule
     new_collisions = new_flight_schedule.count_collisions()
     old_collisions = old_flight_schedule.count_collisions()
+    """
+    # Your input data
+    raw_data = (
+    [
+        {'ACID': "ABC123", 'departure_airport': "CYYZ", 'arrival_airport': "CYVR", 'departure_time_orig': 1000, 'departure_time_opt': 1100, 'departure_time_diff': 100}, 
+        {'ACID': "DEF456", 'departure_airport': "CYUL", 'arrival_airport': "CYYC", 'departure_time_orig': 1200, 'departure_time_opt': 1250, 'departure_time_diff': 50}
+    ], 
+    22, 60, 2, 5
+)
+
+    # Unpacking the tuple
+    flights, mean_val, changes, new_collisions, old_collisions = raw_data
+
+    # Transforming into the dictionary
+    formatted_dict = {
+        "flights": flights,
+        "mean_delay": mean_val,
+        "optimization_changes": changes,
+        "active_conflicts": new_collisions, # Matches 'Active Conflicts' in your React code
+        "total_conflicts": old_collisions   # Matches 'Total Conflicts' in your React code
+    }
     
-    # Returns: Most notable delays, count of delays, average delay, new collision count, old collision count
-    
-    return top_delays, merged, delayed, merged['was_delayed'].mean(), new_collisions, old_collisions
+    return formatted_dict
 
 def compare_by_acids(new_schedule, old_schedule):
     """

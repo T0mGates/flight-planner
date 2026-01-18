@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Send, Bot, User, Loader2, Terminal } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query"; // Added import
 import logo from "../../assets/plane_logo.png";
 
 interface Message {
@@ -10,20 +11,67 @@ interface Message {
 }
 
 interface SchedulerChatProps {
-    schedulingData?: any;
+    uuid: string;
 }
 
-export default function SchedulerChat({ schedulingData }: SchedulerChatProps) {
+// Interface to match your status endpoint
+interface StatusData {
+    status: string;
+}
+
+export default function SchedulerChat({ uuid }: SchedulerChatProps) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [isOpen, setIsOpen] = useState(false); 
+    const [isOpen, setIsOpen] = useState(false);
+    const [schedulingData, setSchedulingData] = useState<any>(null);
 
     const scrollEndRef = useRef<HTMLDivElement>(null);
-
     const scrollToBottom = () => {
         scrollEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
+
+    // 1. Poll for status using the same logic as AnalysisStatus
+    const { data: statusData } = useQuery<StatusData>({
+        queryKey: ["jobStatus", uuid],
+        queryFn: async () => {
+            const response = await fetch(`http://localhost:8000/job_status/${uuid}`);
+            if (!response.ok) throw new Error("Status check failed");
+            return response.json();
+        },
+        enabled: !!uuid && !schedulingData, // Only poll if we have a uuid and don't have data yet
+        refetchInterval: (query) =>
+            query.state.data?.status === "completed" ? false : 2000,
+    });
+
+    // 2. Fetch scheduling data ONLY when status is "completed"
+    useEffect(() => {
+        const fetchSchedulingData = async () => {
+            if (!uuid || statusData?.status !== "completed") return;
+
+            setIsLoading(true);
+            try {
+                const response = await fetch(`http://localhost:8000/compare_flights/${uuid}/ai`);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch schedule for job ${uuid}`);
+                }
+                const data = await response.json();
+                setSchedulingData(data);
+            } catch (error) {
+                setMessages(prev => [
+                    ...prev,
+                    {
+                        role: "assistant",
+                        content: `CRITICAL: Unable to fetch scheduling data for job ${uuid}.`
+                    }
+                ]);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchSchedulingData();
+    }, [uuid, statusData?.status]); // Runs when uuid changes or status becomes completed
 
     useEffect(() => {
         scrollToBottom();
@@ -33,12 +81,9 @@ export default function SchedulerChat({ schedulingData }: SchedulerChatProps) {
         if (!input.trim() || isLoading) return;
 
         const userMessage: Message = { role: "user", content: input };
+        const cleanHistory = messages.filter(m => !m.content.includes("CRITICAL: Secure link"));
 
-        const cleanHistory = messages.filter(m =>
-            !m.content.includes("CRITICAL: Secure link")
-        );
-
-        setMessages((prev) => [...prev, userMessage]);
+        setMessages(prev => [...prev, userMessage]);
         setInput("");
         setIsLoading(true);
 
@@ -60,12 +105,15 @@ export default function SchedulerChat({ schedulingData }: SchedulerChatProps) {
             }
 
             const data = await response.json();
-            setMessages((prev) => [...prev, { role: "assistant", content: data.response }]);
+            setMessages(prev => [...prev, { role: "assistant", content: data.response }]);
         } catch (error) {
-            setMessages((prev) => [...prev, {
-                role: "assistant",
-                content: "CRITICAL: Secure link to AI scheduler severed. Check local backend."
-            }]);
+            setMessages(prev => [
+                ...prev,
+                {
+                    role: "assistant",
+                    content: "CRITICAL: Secure link to AI scheduler severed. Check local backend."
+                }
+            ]);
         } finally {
             setIsLoading(false);
         }
@@ -87,7 +135,6 @@ export default function SchedulerChat({ schedulingData }: SchedulerChatProps) {
     return (
         <div className="w-80 h-96  origin-bottom animate-in fade-in slide-in-from-bottom duration-300">
             <Card className="w-full h-full flex flex-col shadow-2xl border-zinc-800 bg-zinc-950/50 backdrop-blur-md text-zinc-50 overflow-hidden">
-
 
                 <CardHeader className="py-3 px-4 border-b border-zinc-900 flex-none">
                     <div className="flex items-center gap-2">
@@ -137,13 +184,14 @@ export default function SchedulerChat({ schedulingData }: SchedulerChatProps) {
                                 </div>
                             ))}
 
-                            {isLoading && (
+                            {/* Show loading state while polling or fetching final data */}
+                            {(isLoading || (statusData && statusData.status !== "completed")) && (
                                 <div className="flex gap-3 flex-row items-center animate-pulse">
                                     <div className="h-7 w-7 rounded border border-blue-500/30 bg-blue-500/10 flex items-center justify-center">
                                         <Loader2 size={12} className="animate-spin text-blue-400" />
                                     </div>
                                     <div className="bg-blue-500/5 border border-blue-500/10 rounded-xl px-4 py-2 text-[10px] text-blue-400 font-mono italic">
-                                        Analyzing Schedule...
+                                        {statusData?.status !== "completed" ? "Calculating Optimizations..." : "Analyzing Schedule..."}
                                     </div>
                                 </div>
                             )}
@@ -165,7 +213,7 @@ export default function SchedulerChat({ schedulingData }: SchedulerChatProps) {
                             />
                             <button
                                 onClick={handleSend}
-                                disabled={isLoading || !input.trim()}
+                                disabled={isLoading || !input.trim() || !schedulingData}
                                 className="absolute right-0 text-blue-500 hover:text-blue-400 disabled:text-zinc-800 transition-colors"
                             >
                                 <Send size={16} />

@@ -13,6 +13,8 @@ YOUR MISSION:
 2. Identify any flights that look problematic (e.g., late departures, missing arrival data).
 3. If the user asks about delays, look at the timestamps and current status in the data provided.
 4. Answer questions clearly and concisely using a professional aviation tone.
+5. Injest JSON objects, summarize the general information to make it easy to understand for the user
+6. Always confirm with the user if they need further assistance.
 
 CONSTRAINTS:
 - Do not mention that you received a "New Data" block; just treat it as your current knowledge.
@@ -22,6 +24,7 @@ CONSTRAINTS:
 - Do not give any information about schedules unless asked for excplicitly. 
 - If the user greets you or says thanks, respond politely but briefly, always ask if you can help.
 - If the user says anything non flight related, just respond "I'm here to assist with flight scheduling and operations only."
+- Do not give the user raw json ever. Parse all objects that are injested and provide real sentences and summaries to the user.
 """
 
 class OpenRouterService:
@@ -31,7 +34,7 @@ class OpenRouterService:
             base_url="https://openrouter.ai/api/v1",
             api_key=os.getenv("OPENROUTER_API_KEY"),
         )
-        self.model = "google/gemini-2.0-flash-001"
+        self.model = "google/gemini-3-pro-preview"
 
     async def get_chat_response(self, messages: list):
         try:

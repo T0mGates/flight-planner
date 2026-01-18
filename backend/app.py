@@ -12,13 +12,15 @@ from backend.logging.logger             import get_logger
 from backend.scheduler.optimization_worker import optimizer_worker
 from backend.scheduler.work_queue       import queue, job_status
 from contextlib import asynccontextmanager
-from backend.scheduler.comparator      import compare_by_acids
 from backend.scheduler.models         import FlightSchedule
-
+from backend.scheduler.comparator       import compare_by_acids, compare_schedules
+from backend.ai.schemas                 import ChatRequest
+from backend.ai.genai                   import OpenRouterService, SYSTEM_PROMPT
 
 init_fast_api_sentry()
 database    = db.Database
 database.init()
+ai_service = OpenRouterService()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -243,3 +245,56 @@ def compare_flights(uuid: str):
     )
     
     return comparison
+
+@app.get("/compare_flights/{uuid}/ai")
+def compare_flights(uuid: str):
+    job = job_status.get(uuid)
+
+    if not job:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Job with id: {uuid} does not exist"
+        )
+    
+    if job['status'] != 'completed':
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Job with id: {uuid} is not yet completed"
+        )
+    
+    optimized_schedule = job['result']
+    original_schedule  = database.get_all_flights()
+
+    comparison = compare_schedules(
+        new_schedule = optimized_schedule,
+        old_schedule = original_schedule
+    )
+    print(f"\n\n\nCOMPARISON RESULT: {comparison}\n\n\n")
+    return comparison
+
+@app.post("/chat")
+async def chat_with_scheduler(request: ChatRequest):
+    print(f"\n\n\nREQUEST: {request}\n\n\n")
+    # 1. Initialize with your specific aviation system prompt
+    formatted_messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    
+    # 2. Map history from frontend to AI format
+    for msg in request.history:
+        formatted_messages.append({"role": msg.role, "content": msg.content})
+    
+    # 3. Inject raw scheduling data into the latest message
+    content = request.new_message
+    if request.scheduling_data:
+        # Pydantic's Any type allows this dictionary to be stringified here
+        content = f"New Data: {request.scheduling_data}\n\nQuestion: {content}"
+        print(f"\n\n\nDATA: {content}\n\n\n")
+    formatted_messages.append({"role": "user", "content": content})
+
+    # 4. Asynchronous call to OpenRouter/Gemini
+    print(f"\n\n\nFORMATTED MESSAGES: {formatted_messages}\n\n\n")
+    ai_response = await ai_service.get_chat_response(formatted_messages)
+    
+    if "Error" in ai_response:
+        raise HTTPException(status_code=500, detail=ai_response)
+
+    return {"response": ai_response}
