@@ -41,6 +41,7 @@ export default function FlightFiltersCard({ filters, setFilters, isFetching }: F
   const handleReset = () => {
     const reset = { startDateTime: "", endDateTime: "", origin: "", destination: "" };
     setLocalFilters(reset);
+    setFilters(reset);
   };
 
   return (
