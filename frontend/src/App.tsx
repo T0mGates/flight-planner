@@ -1,5 +1,6 @@
 import './App.css';
 
+import { Play, Loader2 } from "lucide-react";
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from '@tanstack/react-query';
@@ -8,6 +9,7 @@ import FlightInfoCard from './components/flight/FlightInfoCard.tsx';
 import FlightDetailPanel from './components/flight/FlightDetailPanel.tsx';
 import { type Flight } from "./helpers/Types";
 import TimeControls from './components/flight/TimeControls.tsx';
+import AnalysisStatus from './components/flight/AnalysisStatus.tsx';
 
 // Fetch with filters
 const fetchFlights = async ({ queryKey }: any): Promise<Record<string, Flight>> => {
@@ -72,6 +74,12 @@ function getFirstLastFlight(flights: Flight[], first: Boolean) {
   return earliest.departure_time;
 }
 
+const startAnalysis = async () => {
+  const response = await fetch('http://localhost:8000/start_worker');
+  if (!response.ok) throw new Error('Network response was not ok');
+  return response.json();
+}
+
 function App() {
   // DEFAULT FILTERS
   const [filters, setFilters] = useState({
@@ -108,6 +116,24 @@ function App() {
     queryFn: () => fetchFlightById(selectedId),
     enabled: !!selectedId,
   });
+
+  const { 
+      data: analysisData, 
+      isFetching: isAnalyzing, 
+      refetch: triggerAnalysis,
+      isSuccess: analysisStarted
+    } = useQuery({
+    queryKey: ['startWorker'],
+    queryFn: startAnalysis,
+    enabled: false, // Prevents automatic execution on mount
+    retry: false,
+  });
+
+  let workerId = null;
+  if(analysisStarted)
+  {
+    workerId = analysisData["job_id"];
+  }
 
   // If select the "old" id, DESELECT it
   const handleSelect = useCallback((id: number) => {
@@ -163,6 +189,44 @@ function App() {
           />
         </motion.div>
       </div>
+
+      {/* Top Left Analysis Button, or if a worker is active, separate component */}
+      <div className="absolute top-3 left-14 z-1000">
+        {workerId
+        ?
+          <AnalysisStatus id={workerId}/>
+        :
+          <button
+            onClick={() => triggerAnalysis()}
+            disabled={isAnalyzing || analysisStarted}
+            className={`
+              group relative flex items-center gap-3 px-4 py-2.5 rounded-xl border transition-all duration-300
+              backdrop-blur-md font-bold uppercase text-[10px] tracking-widest outline-none
+              ${isAnalyzing || analysisStarted
+                ? "bg-blue-500/10 border-blue-500/50 text-blue-400 cursor-wait" 
+                : "bg-zinc-950/90 border-zinc-800 text-white hover:border-blue-500/50"
+              }
+            `}
+          >
+            {/* Icon Logic */}
+            <div className="relative flex items-center justify-center">
+              {isAnalyzing || analysisStarted ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <Play size={16} className="fill-current group-hover:scale-110 transition-transform" />
+              )}
+            </div>
+            
+            <div className="flex flex-col items-start leading-none">
+              <span className="mb-0.5">
+                {isAnalyzing || analysisStarted ? "Analyzing schedule..." : "Start Analysis"}
+              </span>
+            </div>
+          </button>
+        }
+
+      </div>
+
     </div>
   )
 }

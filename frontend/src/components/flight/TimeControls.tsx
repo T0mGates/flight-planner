@@ -13,8 +13,6 @@ interface TimeControlsProps {
 function formatTime(unixSeconds: number) {
   // Convert to milliseconds
   const date = new Date(unixSeconds * 1000);
-  console.log(date);
-  console.log(unixSeconds);
   return date.toLocaleString('en-US', {
     timeZone: "UTC",
     month: 'short',
