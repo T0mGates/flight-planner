@@ -85,8 +85,9 @@ export default function SchedulerChat({ schedulingData }: SchedulerChatProps) {
     }
 
     return (
-        <div className="w-full h-full origin-bottom animate-in fade-in slide-in-from-bottom duration-300">
+        <div className="w-80 h-96  origin-bottom animate-in fade-in slide-in-from-bottom duration-300">
             <Card className="w-full h-full flex flex-col shadow-2xl border-zinc-800 bg-zinc-950/50 backdrop-blur-md text-zinc-50 overflow-hidden">
+
 
                 <CardHeader className="py-3 px-4 border-b border-zinc-900 flex-none">
                     <div className="flex items-center gap-2">
