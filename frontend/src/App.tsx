@@ -11,7 +11,7 @@ import { type Flight } from "./helpers/Types";
 import TimeControls from './components/flight/TimeControls.tsx';
 import { getFirstFlight, getLastFlight } from './helpers/Flights.ts';
 import AnalysisStatus from './components/flight/AnalysisStatus.tsx';
-import logo from './assets/plane_logo.png';
+import SchedulerChat from './components/chatbot/SchedulerChat.tsx';
 
 // Fetch with filters
 const fetchFlights = async ({ queryKey }: any): Promise<Record<string, Flight>> => {
@@ -149,27 +149,38 @@ function App() {
 
   return (
     <div className="relative w-screen h-screen">
-      <div className="absolute bottom-4 left-4 z-1000 flex flex-col items-start gap-2">
-        <img
-          src={logo}
-          alt="Logo"
-          className="h-30 w-auto object-contain mb-28 opacity-50"
-        />
-        <TimeControls
-          startTimeSeconds={earliestFlightTime}
-          endTimeSeconds={latestFlightTime}
-          currentTimeSeconds={currentDisplayTime}
-          setCurrentTimeSeconds={setCurrentDisplayTime}
-          timestep={60}
-          intervalTimeout={50}
-        />
+      <div className="absolute bottom-4 left-4 z-[1000] flex flex-col gap-4 items-start pointer-events-none">
+        {/* The Chat is now physically above the controls in the DOM */}
+        <div className="w-80 pointer-events-auto">
+          <SchedulerChat />
+        </div>
+
+        {/* The Time Controls stay at the bottom */}
+          <div className="pointer-events-auto">
+            <TimeControls
+              startTimeSeconds={earliestFlightTime}
+              endTimeSeconds={latestFlightTime}
+              currentTimeSeconds={currentDisplayTime}
+              setCurrentTimeSeconds={setCurrentDisplayTime}
+              timestep={60}
+              intervalTimeout={50}
+            />
+        </div>
       </div>
-      <Map flights={Object.values(flightData ?? {})} airports={airportData ?? {}} selectedFlightId={selectedId ?? null} onSelectFlight={handleSelect} currentTime={currentDisplayTime} />
+      <Map
+        flights={Object.values(flightData ?? {})}
+        airports={airportData ?? {}}
+        selectedFlightId={selectedId ?? null}
+        onSelectFlight={handleSelect}
+        currentTime={currentDisplayTime}
+      />
+
+      {/* Right Sidebar: Details and Info Cards */}
       <div className="absolute top-4 right-4 w-96 h-[calc(100vh-2rem)] z-1000 flex flex-col gap-4">
         <AnimatePresence mode="popLayout">
           {selectedFlight && (
             <motion.div
-              key="detail-panel" // Key is required for AnimatePresence
+              key="detail-panel"
               initial={{ opacity: 0, y: -20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
@@ -182,7 +193,7 @@ function App() {
             </motion.div>
           )}
         </AnimatePresence>
-        {/* We also wrap the card so it slides up/down smoothly when the panel above it changes */}
+
         <motion.div
           layout
           transition={{ duration: 0.4, type: "spring", bounce: 0.2 }}
@@ -207,7 +218,6 @@ function App() {
           <motion.button
             onClick={() => triggerAnalysis()}
             disabled={isAnalyzing || analysisStarted}
-            // Pulse animation logic
             animate={!(isAnalyzing || analysisStarted) ? {
               boxShadow: [
                 "0 0 0px rgba(59, 130, 246, 0)",
@@ -215,8 +225,8 @@ function App() {
                 "0 0 0px rgba(59, 130, 246, 0)"
               ],
               borderColor: [
-                "rgba(39, 39, 42, 1)",      // border-zinc-800
-                "rgba(59, 130, 246, 0.8)",  // blue-500
+                "rgba(39, 39, 42, 1)",
+                "rgba(59, 130, 246, 0.8)",
                 "rgba(39, 39, 42, 1)"
               ]
             } : {}}
@@ -226,15 +236,14 @@ function App() {
               ease: "easeInOut"
             }}
             className={`
-        group relative flex items-center gap-3 px-4 py-2.5 rounded-xl border transition-all duration-300
-        backdrop-blur-md font-bold uppercase text-[10px] tracking-widest outline-none
-        ${isAnalyzing || analysisStarted
+              group relative flex items-center gap-3 px-4 py-2.5 rounded-xl border transition-all duration-300
+              backdrop-blur-md font-bold uppercase text-[10px] tracking-widest outline-none
+              ${isAnalyzing || analysisStarted
                 ? "bg-blue-500/10 border-blue-500/50 text-blue-400 cursor-wait"
                 : "bg-zinc-950/90 text-white hover:text-blue-400"
               }
-      `}
+            `}
           >
-            {/* Icon Logic */}
             <div className="relative flex items-center justify-center">
               {isAnalyzing || analysisStarted ? (
                 <Loader2 size={16} className="animate-spin" />
@@ -254,9 +263,8 @@ function App() {
           </motion.button>
         )}
       </div>
-
     </div>
-  )
+  );
 }
 
 export default App

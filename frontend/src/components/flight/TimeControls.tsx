@@ -90,7 +90,7 @@ export default function TimeControls({
   }, []);
 
   return (
-    <div className="absolute bottom-1 z-1000">
+    <div className="bottom-3 left-4 z-[1000]">
       <div className="bg-zinc-950/40 backdrop-blur-md border border-zinc-900 rounded-md shadow-2xl p-4 w-fit">
         <div className="flex flex-col gap-2">
           {/* Header */}
