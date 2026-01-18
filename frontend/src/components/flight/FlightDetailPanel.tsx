@@ -8,7 +8,7 @@ interface FlightDetailPanelProps {
 
 export default function FlightDetailPanel({ flight, onClose }: FlightDetailPanelProps) {
     return (
-        <div className="relative py-4 px-6 bg-zinc-900/90 backdrop-blur-md border border-blue-500/30 rounded-xl text-white shadow-2xl overflow-hidden">
+        <div className="relative py-4 px-6 bg-zinc-900/40 backdrop-blur-md border border-blue-500/30 rounded-xl text-white shadow-2xl overflow-hidden">
             {/* Subtle glow effect */}
             <div className="absolute -top-10 -left-10 w-32 h-32 bg-blue-500/10 blur-3xl pointer-events-none" />
 

@@ -1,11 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { Play, Pause } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
-import logo from '../../assets/plane_logo.png';
 
 // Format unix timestamp to readable date/time
 function formatTime(unixSeconds: number) {
-  // Convert to milliseconds
   const date = new Date(unixSeconds * 1000);
   return date.toLocaleString('en-US', {
     timeZone: "UTC",
@@ -17,12 +15,12 @@ function formatTime(unixSeconds: number) {
 };
 
 interface TimeControlsProps {
-  startTimeSeconds: number; // Unix timestamp in seconds
-  endTimeSeconds: number;   // Unix timestamp in seconds
-  currentTimeSeconds: number; // Current time as unix timestamp
-  setCurrentTimeSeconds: (time: number) => void; // Setter for current time
-  timestep: number, // timestep for controls in seconds
-  intervalTimeout: number // the time to wait for each timestep when playing flights
+  startTimeSeconds: number;
+  endTimeSeconds: number;
+  currentTimeSeconds: number;
+  setCurrentTimeSeconds: (time: number | ((prev: number) => number)) => void;
+  timestep: number,
+  intervalTimeout: number
 }
 
 export default function TimeControls({
@@ -33,7 +31,6 @@ export default function TimeControls({
   timestep,
   intervalTimeout,
 }: TimeControlsProps) {
-  const [isOpen, setIsOpen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const intervalRef = useRef<number | undefined>(undefined);
 
@@ -41,13 +38,13 @@ export default function TimeControls({
   const endTime = formatTime(endTimeSeconds);
   const currentTime = formatTime(currentTimeSeconds);
 
-  // Calculate the total duration in hours
   const totalDurationSeconds = endTimeSeconds - startTimeSeconds;
   const totalSteps = totalDurationSeconds / timestep;
 
-  // Handle slider change - convert hours back to unix seconds
+  // Keep slider handle in sync with current time
+  const currentStep = Math.floor((currentTimeSeconds - startTimeSeconds) / timestep);
+
   const handleSliderChange = (value: number[]) => {
-    // Stop playback to avoid being annoying
     if (isPlaying) {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -59,28 +56,21 @@ export default function TimeControls({
     setCurrentTimeSeconds(newTimeSeconds);
   };
 
-  const intervalFunction = () => {
-    setCurrentTimeSeconds((time: number) => {
-      return time + timestep
-    });
-  }
-
   const handleClick = () => {
     if (isPlaying) {
-      // Stop the interval
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = undefined;
       }
       setIsPlaying(false);
     } else {
-      // Start the interval
-      intervalRef.current = setInterval(intervalFunction, intervalTimeout);
+      intervalRef.current = window.setInterval(() => {
+        setCurrentTimeSeconds((time: number) => time + timestep);
+      }, intervalTimeout);
       setIsPlaying(true);
     }
   };
 
-  // Clean up interval on unmount
   useEffect(() => {
     return () => {
       if (intervalRef.current) {
@@ -90,25 +80,8 @@ export default function TimeControls({
   }, []);
 
   return (
-    <div className="absolute bottom-3 left-0 z-[1000] flex items-center gap-0">
-      {/* Logo - clickable */}
-      <div onClick={() => setIsOpen(!isOpen)}>
-        <img
-          src={logo}
-          alt="Flight Planner Logo"
-          className="h-30 w-auto opacity-80 grayscale contrast-125 hover:opacity-100 transition-opacity"
-        />
-      </div>
-
-      {/* Slide-out panel */}
-      <div
-        className={`
-          bg-zinc-950 border border-zinc-800 rounded-md
-          shadow-2xl
-          transition-all duration-100 ease-in-out
-          ${isOpen ? 'w-fit opacity-100 ml-2 p-4' : 'w-0 opacity-0 overflow-hidden'}
-        `}
-      >
+    <div className="absolute bottom-3 left-4 z-[1000]">
+      <div className="bg-zinc-950/40 backdrop-blur-md border border-zinc-900 rounded-md shadow-2xl p-4 w-fit">
         <div className="flex flex-col gap-2">
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -124,10 +97,10 @@ export default function TimeControls({
               {startTime}
             </span>
 
-            {/* Slider */}
-            <div className="flex-1">
+            {/* Slider Wrapper */}
+            <div className="flex-1 min-w-[200px]">
               <Slider
-                defaultValue={[0]}
+                value={[currentStep]}
                 onValueChange={handleSliderChange}
                 min={0}
                 max={totalSteps}
@@ -136,7 +109,7 @@ export default function TimeControls({
               />
               {/* Current time display */}
               <div className="text-center mt-1">
-                <span className="text-sm font-mono font-bold text-sinc-400">
+                <span className="text-sm font-mono font-bold text-zinc-400">
                   {currentTime}
                 </span>
               </div>
@@ -151,7 +124,7 @@ export default function TimeControls({
             <button
               onClick={handleClick}
               style={{ minWidth: '40px', minHeight: '40px' }}
-              className="flex items-center justify-center bg-zinc-900"
+              className="flex items-center justify-center bg-zinc-900 rounded hover:bg-zinc-800 transition-colors"
             >
               {isPlaying ? (
                 <Pause size={20} className="text-zinc-400" />
