@@ -218,7 +218,7 @@ def apply_optimization(uuid: str):
     
     return {"message": f"Applied optimization with {len(flights)} flights to database."}
 
-@app.get("/compare_flights/{uuid}/ai")
+@app.get("/compare_flights/{uuid}")
 def compare_flights(uuid: str):
     job = job_status.get(uuid)
 
