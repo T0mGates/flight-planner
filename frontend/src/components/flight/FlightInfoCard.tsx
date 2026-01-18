@@ -19,7 +19,7 @@ interface FlightInfoCardProps {
 
 export default function FlightInfoCard({ flights, selectedId, onSelect, filters, setFilters, isFetching }: FlightInfoCardProps) {
   return (
-    <Card className="w-full shadow-2xl border-zinc-800 bg-zinc-950/90 backdrop-blur text-zinc-50">
+    <Card className="w-full shadow-2xl border-zinc-800 bg-zinc-950/90 backdrop-blur text-zinc-50 rounded-xl">
 
       {/* Upper title portion of the card */}
       <CardHeader className="pb-3 border-b border-zinc-900">
