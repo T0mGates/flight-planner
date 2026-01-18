@@ -251,9 +251,7 @@ class CostDriven4DResolver:
             }
             
             identifier += 1
-            
-        print(output)
-                
+                            
         return output
         
             
