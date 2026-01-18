@@ -48,5 +48,38 @@ def compare_schedules(new_schedule, old_schedule):
     # Returns: Most notable delays, count of delays, average delay, new collision count, old collision count
     
     return top_delays, merged, delayed, merged['was_delayed'].mean(), new_collisions, old_collisions
+
+def compare_by_acids(new_schedule, old_schedule):
+    """
+    Compares two flight schedules for specific ACIDs and returns a similarity score.
     
+    Args:
+        new_schedule (pd.DataFrame): The first flight schedule.
+        old_schedule (pd.DataFrame): The second flight schedule.
     
+    Returns:
+        dict: A dictionary with ACID as keys and comparison results as values.
+    """
+    
+    print("Comparing flight schedules by ACID...")
+    print(f"New schedule flights: {new_schedule}")
+    print(f"Old schedule flights: {old_schedule}")
+    
+    merged = pd.merge(new_schedule, old_schedule, on='ACID', suffixes=('_1', '_2'))
+    comparison_results = {}
+    for _, row in merged.iterrows():
+        acid = row['ACID']
+        departure_time_diff = row['departure_time_1'] - row['departure_time_2']
+        comparison_results[acid] = {
+            'departure_time_diff': departure_time_diff,
+            'was_delayed': departure_time_diff > 0,
+            'average_speed_diff': (sum(row['aircraft_speed_1'])/len(row['aircraft_speed_1'])) - (sum(row['aircraft_speed_2'])/len(row['aircraft_speed_2'])),
+            'average_altitude_diff': (sum(row['altitude_1'])/len(row['altitude_1'])) - (sum(row['altitude_2'])/len(row['altitude_2']))
+        }    
+        comparison_results[acid]['has_differences'] = any([
+            comparison_results[acid]['departure_time_diff'] != 0,
+            comparison_results[acid]['average_speed_diff'] != 0,
+            comparison_results[acid]['average_altitude_diff'] != 0
+        ])
+    
+    return comparison_results

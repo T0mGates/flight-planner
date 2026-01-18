@@ -1,7 +1,6 @@
 import asyncio
 import uuid
 from fastapi                            import FastAPI, HTTPException, status
-from datetime                           import datetime
 from typing                             import Optional
 
 import pandas as pd
@@ -12,8 +11,8 @@ from backend.sentry.error_monitoring    import init_fast_api_sentry
 from backend.logging.logger             import get_logger
 from backend.scheduler.optimization_worker import optimizer_worker
 from backend.scheduler.work_queue       import queue, job_status
-from backend.scheduler.resolver       import CostDriven4DResolver
 from contextlib import asynccontextmanager
+from backend.scheduler.comparator      import compare_by_acids
 
 
 init_fast_api_sentry()
@@ -189,3 +188,29 @@ async def get_job_flight_results(
         ret_dict[acid] = results[acid]
 
     return ret_dict
+
+@app.get("/compare_flights/{uuid}")
+def compare_flights(uuid: str):
+    job = job_status.get(uuid)
+
+    if not job:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Job with id: {uuid} does not exist"
+        )
+    
+    if job['status'] != 'completed':
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Job with id: {uuid} is not yet completed"
+        )
+    
+    optimized_schedule = job['result']
+    original_schedule  = database.get_all_flights()
+
+    comparison = compare_by_acids(
+        new_schedule = pd.DataFrame.from_dict(optimized_schedule.values()),
+        old_schedule = pd.DataFrame.from_dict(original_schedule.values())
+    )
+    
+    return comparison

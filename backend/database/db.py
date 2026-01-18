@@ -119,3 +119,7 @@ class Database():
     @classmethod
     def get_airport_details(cls, iata_code: str)->Airport | dict:
         return cls._airport_data.get(iata_code, {})
+    
+    @classmethod
+    def get_all_flights(cls)->dict[int, Flight]:
+        return cls._flight_data
