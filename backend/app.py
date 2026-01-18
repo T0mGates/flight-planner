@@ -76,6 +76,7 @@ def create_flight(flight: Flight):
 
 @app.get("/flights/{flight_acid}")
 def get_flight_by_acid(flight_acid: str):
+    flight_acid = flight_acid.upper()
     flight = database.get_flight_by_acid(acid=flight_acid)
     if not flight:
         raise HTTPException(

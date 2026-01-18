@@ -74,7 +74,7 @@ export default function FlightFiltersCard({ filters, setFilters, isFetching }: F
         {openSections.dates && (
           <div className="px-4 pb-4 pt-2 flex flex-col gap-3 animate-in fade-in slide-in-from-top-1 duration-200">
             <div className="flex flex-col gap-1.5">
-              <span className="text-[9px] text-zinc-600 font-bold ml-1 uppercase">From UTC</span>
+              <span className="text-[9px] text-zinc-600 font-bold ml-1 uppercase">From</span>
               <input 
                 type="datetime-local" 
                 name="startDateTime"
@@ -84,7 +84,7 @@ export default function FlightFiltersCard({ filters, setFilters, isFetching }: F
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <span className="text-[9px] text-zinc-600 font-bold ml-1 uppercase">To UTC</span>
+              <span className="text-[9px] text-zinc-600 font-bold ml-1 uppercase">To</span>
               <input 
                 type="datetime-local" 
                 name="endDateTime"
@@ -135,7 +135,7 @@ export default function FlightFiltersCard({ filters, setFilters, isFetching }: F
                 />
             </div>
             <div className="flex flex-col gap-1.5 col-span-1">
-                <span className="text-[8px] text-zinc-600 font-bold ml-1">DEST</span>
+                <span className="text-[8px] text-zinc-600 font-bold ml-1">DESTINATION</span>
                 <input 
                   type="text" 
                   name="destination" 
