@@ -19,7 +19,7 @@ export default function Map({
   currentTime: number
 }) {
   return (
-    <MapContainer center={[56.1304, -106.3468]} zoom={4} zoomControl={false} scrollWheelZoom={true} className="w-full h-full">
+    <MapContainer center={[46.335083, -72.675000]} zoom={4} zoomControl={false} scrollWheelZoom={true} className="w-full h-full">
       <TileLayer
         url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         attribution='&copy; OpenStreetMap contributors &copy; CARTO'
