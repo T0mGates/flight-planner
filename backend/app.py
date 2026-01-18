@@ -74,13 +74,13 @@ def create_flight(flight: Flight):
     
     return {"message": "Success!"}
 
-@app.get("/flights/{flight_id}")
-def get_flight_by_id(flight_id: int):
-    flight = database.get_flight_by_id(id=flight_id)
+@app.get("/flights/{flight_acid}")
+def get_flight_by_acid(flight_acid: str):
+    flight = database.get_flight_by_acid(acid=flight_acid)
     if not flight:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Flight with id: {flight_id} does not exist"
+            detail=f"Flight with acid: {flight_acid} does not exist"
         )
     
     return {"flight": flight}

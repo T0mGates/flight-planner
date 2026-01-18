@@ -10,7 +10,6 @@ log = get_logger()
 class Database():
     _flight_data : dict[int, Flight]    = {}
     _airport_data: dict[str, Airport]   = {}
-    _next_id                            = 1
 
     @classmethod
     def init(cls):
@@ -30,17 +29,15 @@ class Database():
 
     @classmethod
     def add_flight(cls, flight: Flight)->bool:
-        cls._flight_data[cls._next_id]         = flight.model_dump()
-        cls._flight_data[cls._next_id]["id"]   = cls._next_id
-        cls._next_id                    += 1
+        cls._flight_data[flight.ACID] = flight.model_dump()
         return True
 
     @classmethod
     def get_flights(cls, filters: FlightFilters)->dict[int, Flight]:
         to_ret = {}
         for flight in cls._flight_data.values():
-            if(cls.include_flight_based_off_filter(flight_id=flight["id"], filters=filters)):
-                to_ret[flight["id"]] = flight
+            if(cls.include_flight_based_off_filter(flight_acid=flight["ACID"], filters=filters)):
+                to_ret[flight["ACID"]] = flight
 
             if len(to_ret.keys()) >= 100:
                 break
@@ -48,8 +45,8 @@ class Database():
         return to_ret
     
     @classmethod
-    def include_flight_based_off_filter(cls, flight_id: int, filters: FlightFilters)->bool:
-        flight = cls._flight_data.get(flight_id, {})
+    def include_flight_based_off_filter(cls, flight_acid: str, filters: FlightFilters)->bool:
+        flight = cls._flight_data.get(flight_acid, {})
         if not flight:
             return False
 
@@ -110,8 +107,8 @@ class Database():
         return to_include
     
     @classmethod
-    def get_flight_by_id(cls, id: int)->Flight:
-        return cls._flight_data.get(id, {})
+    def get_flight_by_acid(cls, acid: str)->Flight:
+        return cls._flight_data.get(acid, {})
     
     @classmethod
     def get_all_airports_details(cls)->dict[str, Airport]:

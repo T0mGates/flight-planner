@@ -1,6 +1,6 @@
 import { MapContainer, TileLayer, } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import type { AirportDict, Airport, Flight } from '@/helpers/Types.ts';
+import type { AirportDict, Flight } from '@/helpers/Types.ts';
 import FlightMapElements from "./FlightMapElements.tsx"
 import AirportMapElements from './AirportMapElements.tsx';
 
@@ -14,8 +14,8 @@ export default function Map({
 }: {
   flights: Flight[],
   airports: AirportDict,
-  selectedFlightId: number,
-  onSelectFlight: (id: number) => void,
+  selectedFlightId: string | null,
+  onSelectFlight: (acid: string) => void,
   currentTime: number
 }) {
   return (
@@ -27,7 +27,7 @@ export default function Map({
       {flights.map(
         (flight) => (
           <FlightMapElements
-            key={flight.id}
+            key={`map:${flight.ACID}`}
             flight={flight}
             airports={airports}
             selectedFlightId={selectedFlightId}

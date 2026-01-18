@@ -4,15 +4,14 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle
 } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PlaneTakeoff, PlaneLanding, Hash } from "lucide-react";
 
 interface FlightInfoCardProps {
   flights: Flight[];
-  selectedId?: number;
-  onSelect: (id: number) => void;
+  selectedId?: string;
+  onSelect: (acid: string) => void;
   filters: FlightFilters;
   setFilters: (filters: FlightFilters) => void;
   isFetching: boolean;
@@ -32,9 +31,9 @@ export default function FlightInfoCard({ flights, selectedId, onSelect, filters,
           <div className="flex flex-col gap-4">
             {flights.map((flight) => (
               <div
-                key={flight.id}
-                onClick={() => onSelect(flight.id)}
-                className={`flex flex-col rounded-xl border transition-all cursor-pointer overflow-hidden ${selectedId === flight.id
+                key={`fic:${flight.ACID}`}
+                onClick={() => onSelect(flight.ACID)}
+                className={`flex flex-col rounded-xl border transition-all cursor-pointer overflow-hidden ${selectedId === flight.ACID
                   ? "border-blue-500 bg-blue-500/10 shadow-[0_0_15px_rgba(59,130,246,0.1)]"
                   : "border-zinc-800 bg-zinc-900/20 hover:border-zinc-500"
                   }`}

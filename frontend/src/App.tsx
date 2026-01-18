@@ -47,9 +47,9 @@ const fetchAirports = async () => {
   return response.json();
 }
 
-const fetchFlightById = async (id: number | null): Promise<Flight | null> => {
-  if (id === null) return null;
-  const response = await fetch(`http://localhost:8000/flights/${id}`);
+const fetchFlightById = async (acid: string | null): Promise<Flight | null> => {
+  if (acid === null) return null;
+  const response = await fetch(`http://localhost:8000/flights/${acid}`);
   if (!response.ok) throw new Error('Flight not found');
   const data = await response.json();
   return data.flight;
@@ -70,7 +70,7 @@ function App() {
     destination: ""
   });
 
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -118,8 +118,8 @@ function App() {
   }
 
   // If select the "old" id, DESELECT it
-  const handleSelect = useCallback((id: number) => {
-    setSelectedId(prevId => (prevId === id ? null : id));
+  const handleSelect = useCallback((acid: string) => {
+    setSelectedId(prevId => (prevId === acid ? null : acid));
   }, []);
 
   // Need start and end times for all flights, for all flights that are loaded
@@ -136,7 +136,7 @@ function App() {
   return (
     <div className="relative w-screen h-screen">
       <TimeControls startTimeSeconds={earliestFlightTime} endTimeSeconds={latestFlightTime} currentTimeSeconds={currentDisplayTime} setCurrentTimeSeconds={setCurrentDisplayTime} timestep={60} intervalTimeout={50}></TimeControls>
-      <Map flights={Object.values(flightData ?? {})} airports={airportData ?? {}} selectedFlightId={selectedId ?? -1} onSelectFlight={handleSelect} currentTime={currentDisplayTime} />
+      <Map flights={Object.values(flightData ?? {})} airports={airportData ?? {}} selectedFlightId={selectedId ?? null} onSelectFlight={handleSelect} currentTime={currentDisplayTime} />
       <div className="absolute top-4 right-4 w-96 h-[calc(100vh-2rem)] z-1000 flex flex-col gap-4">
         <AnimatePresence mode="popLayout">
           {selectedFlight && (

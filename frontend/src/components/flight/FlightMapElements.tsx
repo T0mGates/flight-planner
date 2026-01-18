@@ -18,14 +18,21 @@ function generateNeonColors(count: number) {
 
 const NEON_COLORS = generateNeonColors(150);
 
-function getFlightColour(flightId: number): string {
-  return NEON_COLORS[Math.abs(flightId * 5 + 3) % NEON_COLORS.length];
+function getFlightColour(flightId: string): string {
+  let hash = 0;
+  for (let i = 0; i < flightId.length; i++) {
+    // charCodeAt returns the numeric value of the character
+    // We multiply by a prime (31) to ensure "AB" and "BA" get different colors
+    hash = flightId.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  return NEON_COLORS[Math.abs(hash * 5 + 3) % NEON_COLORS.length];
 }
 
 export default function FlightMapElements({ flight, airports, selectedFlightId, onSelect, currentTime }:
-  { flight: Flight, airports: AirportDict, selectedFlightId: number, onSelect: (id: number) => void, currentTime: number }) {
+  { flight: Flight, airports: AirportDict, selectedFlightId: string | null, onSelect: (acid: string) => void, currentTime: number }) {
   const positions = calculateFlightPositions(flight, airports);
-  const colour = getFlightColour(flight.id);
+  const colour = getFlightColour(flight.ACID);
   const flightStatus = calculateFlightStatus(flight, positions, currentTime);
 
   return (

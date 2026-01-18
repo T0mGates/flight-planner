@@ -226,7 +226,6 @@ class CostDriven4DResolver:
     def format_for_fastapi(df):
         # altitudes and speed should be list of floats, sorted by segment_number
         # this will return df in following format:
-        identifier = 1
         output = {}
         
         df.sort_values(['ACID', 'segment_number'], inplace=True)
@@ -236,7 +235,7 @@ class CostDriven4DResolver:
             group = group.sort_values('segment_number')
             altitudes = group['chosen_altitude_ft'].tolist()
             speeds = group['knots'].tolist()
-            output[str(identifier)] = {
+            output[str(group['ACID'].iloc[0])] = {
                 "departure_airport": str(group['from_airport'].iloc[0]) if 'from_airport' in group else str(group['from'].iloc[0]),
                 "arrival_airport": str(group['to_airport'].iloc[0]) if 'to_airport' in group else str(group['to'].iloc[0]),
                 "route": str(group['route'].iloc[0]) if 'route' in group else "",
@@ -246,11 +245,8 @@ class CostDriven4DResolver:
                 "aircraft_speed": [float(s) for s in speeds],
                 "departure_time": int(group['estimated_departure_time'].iloc[0].timestamp()),
                 "altitude": [float(a) for a in altitudes],
-                "passengers": int(group['passengers'].iloc[0]) if 'passengers' in group else 0,
-                "id": int(identifier)
+                "passengers": int(group['passengers'].iloc[0]) if 'passengers' in group else 0
             }
-            
-            identifier += 1
                             
         return output
         

@@ -3,7 +3,7 @@ import { LatLng } from 'leaflet';
 import type { Flight } from '@/helpers/Types.ts';
 import L from 'leaflet';
 
-export default function FlightMapLine({ flight, positions, colour, selectedFlightId, onSelect }: { flight: Flight, positions: LatLng[], colour: string, selectedFlightId: number, onSelect: (id: number) => void }) {
+export default function FlightMapLine({ flight, positions, colour, selectedFlightId, onSelect }: { flight: Flight, positions: LatLng[], colour: string, selectedFlightId: string | null, onSelect: (acid: string) => void }) {
   if (positions.length == 0) {
     return (<></>);
   }
@@ -18,7 +18,7 @@ export default function FlightMapLine({ flight, positions, colour, selectedFligh
         }}
         eventHandlers={{
           click: (e) => {
-            onSelect(flight.id);
+            onSelect(flight.ACID);
             L.DomEvent.stopPropagation(e);
           },
         }}
@@ -50,7 +50,7 @@ export default function FlightMapLine({ flight, positions, colour, selectedFligh
         }}
       />
 
-      {selectedFlightId === flight.id 
+      {selectedFlightId == flight.ACID 
           ?
             <>
               {/* Outer soft glow */}
