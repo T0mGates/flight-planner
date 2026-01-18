@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import Map from './components/flight/Map.tsx';
 import FlightInfoCard from './components/flight/FlightInfoCard.tsx';
 import FlightDetailPanel from './components/flight/FlightDetailPanel.tsx';
-import { type Flight } from "./helpers/Types";
+import { type Flight, type FlightDiff } from "./helpers/Types";
 import TimeControls from './components/flight/TimeControls.tsx';
 import { getFirstFlight, getLastFlight } from './helpers/Flights.ts';
 import AnalysisStatus from './components/flight/AnalysisStatus.tsx';
@@ -44,6 +44,39 @@ const fetchFlights = async ({ queryKey }: any): Promise<Record<string, Flight>> 
   const response = await fetch(toFetch);
 
   if (!response.ok) throw new Error('Failed to fetch flight data');
+  return response.json();
+};
+
+const fetchFlightDiffs = async ({ queryKey }: any): Promise<Record<string, FlightDiff>> => {
+  const [_key, filters, seeNewChanges, workerId] = queryKey;
+  
+  if(!seeNewChanges || null == workerId)
+  {
+    return {};
+  }
+
+  const params = new URLSearchParams();
+
+  const toUTC = (dateStr: string) => {
+    if (!dateStr) {
+      return null;
+    }
+    // Converts "2026-05-03T07:00" (Local) -> "2026-05-03T11:00:00.000Z" (UTC)
+    return new Date(dateStr).toISOString();
+  };
+
+  const startUTC = toUTC(filters.startDateTime);
+  const endUTC = toUTC(filters.endDateTime);
+
+  // Only append if the value actually exists
+  if (startUTC) params.append("start", startUTC);
+  if (endUTC) params.append("end", endUTC);
+  if (filters.origin) params.append("origin", filters.origin.toUpperCase());
+  if (filters.destination) params.append("destination", filters.destination.toUpperCase());
+
+  const response = await fetch(`http://localhost:8000/compare_flights/${workerId}?${params.toString()}`);
+
+  if (!response.ok) throw new Error('Failed to fetch flight diffs');
   return response.json();
 };
 
@@ -112,6 +145,13 @@ function App() {
     refetchInterval: 10000,
   });
 
+  // Linked to fetchFlights
+  const { data: flightDiffs, isLoading: diffsLoading, error: diffsError, isFetching: isFetchingDiffs } = useQuery({
+    queryKey: ['diffs', filters, seeNewChanges, workerId],
+    queryFn: fetchFlightDiffs,
+    refetchInterval: 10000,
+  });
+
   // TODO: handle errors
   const { data: airportData, isLoading: airportsLoading, error: airportError } = useQuery({
     queryKey: ['airports'],
@@ -146,6 +186,9 @@ function App() {
     setFilters(newFilters);
     setSelectedId(null); // Deselects the flight
   }, []);
+
+  console.log(`flightdiffs: ${JSON.stringify(flightDiffs)}`)
+  console.log(`acid to look for: ${selectedFlight ? selectedFlight.ACID : 'na'}`)
 
   return (
     <div className="relative w-screen h-screen">
@@ -189,6 +232,7 @@ function App() {
               <FlightDetailPanel
                 flight={selectedFlight}
                 onClose={() => setSelectedId(null)}
+                diffs={flightDiffs ? flightDiffs[selectedFlight.ACID] : null}
               />
             </motion.div>
           )}
@@ -206,6 +250,7 @@ function App() {
             setFilters={handleFilterChange}
             selectedId={selectedId ?? undefined}
             onSelect={handleSelect}
+            flightDiffs={flightDiffs}
           />
         </motion.div>
       </div>

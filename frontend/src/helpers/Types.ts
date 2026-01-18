@@ -14,6 +14,14 @@ export interface Flight {
   id: number,
 };
 
+export interface FlightDiff {
+  departure_time_diff: number,
+  was_delayed: false,
+  average_speed_diff: number,
+  average_altitude_diff: number,
+  has_differences: boolean
+};
+
 export interface Airport {
   latlon: string,
   airport_name: string
