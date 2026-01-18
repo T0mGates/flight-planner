@@ -1,6 +1,5 @@
 import { divIcon, LatLng } from "leaflet";
 import { Marker } from "react-leaflet";
-import type { Flight } from "@/helpers/Types";
 
 function createPlaneIcon(heading: number, colour: string) {
   return divIcon({

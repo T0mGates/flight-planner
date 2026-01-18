@@ -1,5 +1,3 @@
-import { LatLng } from 'leaflet';
-
 export interface Flight {
   departure_airport: string,
   arrival_airport: string,

@@ -146,18 +146,25 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const { data: flightData, isLoading: flightsLoading, error: flightError, isFetching: isFetchingFlights } = useQuery({
+  const { data: flightData, error: flightError } = useQuery({
     queryKey: ['flights', filters, seeNewChanges, workerId],
     queryFn: fetchFlights,
     refetchInterval: 10000,
   });
 
   // Linked to fetchFlights
-  const { data: flightDiffs, isLoading: diffsLoading, error: diffsError, isFetching: isFetchingDiffs } = useQuery({
+  const { data: flightDiffs, error: diffsError, isFetching: _ } = useQuery({
     queryKey: ['diffs', filters, seeNewChanges, workerId],
     queryFn: fetchFlightDiffs,
     refetchInterval: 10000,
   });
+
+  // Put into useEffect to avoid double call in strict mode
+  useEffect(() => {
+    if (diffsError) {
+      Sentry.captureException(diffsError);
+    }
+  }, [diffsError]);
 
   // Put into useEffect to avoid double call in strict mode
   useEffect(() => {
@@ -166,7 +173,7 @@ function App() {
     }
   }, [flightError]);
 
-  const { data: airportData, isLoading: airportsLoading, error: airportError } = useQuery({
+  const { data: airportData, error: airportError } = useQuery({
     queryKey: ['airports'],
     queryFn: fetchAirports,
     refetchInterval: 100000, // 100 seconds in milliseconds
@@ -266,7 +273,6 @@ function App() {
           <FlightInfoCard
             flights={Object.values(flightData ?? {})}
             filters={filters}
-            isFetching={isFetchingFlights}
             setFilters={handleFilterChange}
             selectedId={selectedId ?? undefined}
             onSelect={handleSelect}

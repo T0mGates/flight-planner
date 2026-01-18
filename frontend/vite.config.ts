@@ -6,6 +6,9 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
+  build: {
+    sourcemap: true,
+  },
   plugins: [
     react(),
     tailwindcss(),
@@ -16,8 +19,8 @@ export default defineConfig({
         // Can add any components to ignore here
         ignoredComponents: [],
       },
-      org: process.env.SENTRY_ORG,
-      project: process.env.SENTRY_PROJECT,
+      org: "carleton-university-yu",
+      project: "javascript-react",
       authToken: process.env.SENTRY_AUTH_TOKEN,
     })
   ],

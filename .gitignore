@@ -25,4 +25,5 @@ dist-ssr
 
 package-lock.json
 .venv
-.env
+.env*
+

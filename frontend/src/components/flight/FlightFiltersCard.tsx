@@ -1,9 +1,7 @@
 import { useState } from "react";
 import {
-  Filter,
   Calendar,
   MapPin,
-  Loader2,
   ChevronDown,
   ChevronUp,
   RotateCcw
@@ -14,10 +12,9 @@ import { type FlightFilters } from "@/helpers/Types";
 interface FlightFiltersCardProps {
   filters: FlightFilters;
   setFilters: (filters: FlightFilters) => void;
-  isFetching: boolean;
 }
 
-export default function FlightFiltersCard({ filters, setFilters, isFetching }: FlightFiltersCardProps) {
+export default function FlightFiltersCard({ filters, setFilters }: FlightFiltersCardProps) {
   const [localFilters, setLocalFilters] = useState(filters);
 
   const [openSections, setOpenSections] = useState({
