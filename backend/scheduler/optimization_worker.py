@@ -38,7 +38,7 @@ async def optimizer_worker():
             )
 
             job_status[job_id]["status"] = "completed"
-            job_status[job_id].update({"result": result.to_dict(orient="records")})
+            job_status[job_id]['result'] = result.to_api_dict()
 
         except Exception as e:
             job_status[job_id]["status"] = "failed"

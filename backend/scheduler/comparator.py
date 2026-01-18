@@ -1,6 +1,6 @@
 import pandas as pd
 
-from backend.scheduler.data_loader import json_data_to_waypoints
+from backend.scheduler.models import FlightSchedule
 
 def compare_schedules(new_schedule, old_schedule):
     """
@@ -28,11 +28,25 @@ def compare_schedules(new_schedule, old_schedule):
     
     # Get difference in departure_time
     merged['departure_time_diff'] = merged['departure_time_1'] - merged['departure_time_2']
+    
+    
+    # Get count of delayed flights
     merged['was_delayed'] = merged['departure_time_diff'] > 0
+    delayed = merged['was_delayed'].sum()
         
     # Make table of top 10 delays
     top_delays = merged.nlargest(10, 'departure_time_diff')[['departure_airport', 'arrival_airport', 'route', 'ACID', 'plane_type', 'is_cargo', 'departure_time_diff']]
     
-    return top_delays, merged, len(merged), merged['was_delayed'].mean()
+    # Create flight schedules from dataframes
+    new_flight_schedule = FlightSchedule.from_compact_dataframe(new_schedule)
+    old_flight_schedule = FlightSchedule.from_compact_dataframe(old_schedule)
+    
+    # Get number of collisions in each schedule
+    new_collisions = new_flight_schedule.count_collisions()
+    old_collisions = old_flight_schedule.count_collisions()
+    
+    # Returns: Most notable delays, count of delays, average delay, new collision count, old collision count
+    
+    return top_delays, merged, delayed, merged['was_delayed'].mean(), new_collisions, old_collisions
     
     

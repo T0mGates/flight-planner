@@ -149,4 +149,4 @@ def get_job_flight_results(job_id: str):
             detail=f"Job with id: {job_id} is not yet completed"
         )
     
-    return CostDriven4DResolver.format_for_fastapi(pd.DataFrame(job['result']))
+    return job['result']
