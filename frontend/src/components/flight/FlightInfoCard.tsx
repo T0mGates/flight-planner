@@ -24,14 +24,6 @@ export default function FlightInfoCard({ flights, selectedId, onSelect, filters,
 
       {/* Upper title portion of the card */}
       <CardHeader className="pb-3 border-b border-zinc-900">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-xl font-bold tracking-tight text-white">
-            Live Monitor
-          </CardTitle>
-          {/* Blinking Indicator thingy */}
-          <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" title="Live" />
-        </div>
-        {/* Pass the props down to the inner card */}
         <FlightFiltersCard filters={filters} setFilters={setFilters} isFetching={isFetching} />
       </CardHeader>
 

@@ -14,7 +14,7 @@ def run_optimizer_sync(job_id: str, payload: dict):
     """
     return CostDriven4DResolver().resolve(
         generate_flight_schedule("canadian_flights_1000.json"),
-        iterations=1,
+        iterations=10,
         status=job_status[job_id]
     )
 

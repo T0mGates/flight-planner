@@ -50,18 +50,44 @@ export default function FlightMapLine({ flight, positions, colour, selectedFligh
         }}
       />
 
-      {/* The "if selected" line */}
-      {selectedFlightId == flight.id &&
-        <Polyline
-          positions={positions}
-          pathOptions={{
-            color: colour,
-            weight: 10,
-            opacity: 0.7,
-            interactive: false // Clicks pass through to the 'Hit Area' below
-          }}
-        />
-      }
+      {selectedFlightId === flight.id 
+          ?
+            <>
+              {/* Outer soft glow */}
+              <Polyline
+                positions={positions}
+                pathOptions={{
+                  color: colour,
+                  weight: 14,
+                  opacity: 0.18,
+                  lineCap: 'round',
+                  lineJoin: 'round',
+                  interactive: false
+                }}
+                className="flight-glow"
+              />
+
+              {/* Inner softer solid */}
+              <Polyline
+                positions={positions}
+                pathOptions={{
+                  color: colour,
+                  weight: 6,
+                  opacity: 0.25,
+                  lineCap: 'round',
+                  lineJoin: 'round',
+                  interactive: false
+                }}
+              />
+
+              {/* Inject small CSS for the glow blur */}
+              <style dangerouslySetInnerHTML={{__html: `
+                .flight-glow { filter: blur(6px); }
+              `}} />
+            </>
+          :
+              <></>
+          }
     </>
   );
 }
