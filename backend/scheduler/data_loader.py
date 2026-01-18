@@ -16,11 +16,6 @@ def load_data(file_path: str) -> pd.DataFrame:
     df = pd.read_json(abs_path)
     df.columns = [col.replace(' ', '_') for col in df.columns]
 
-    # Map airport codes to lat/lon and plane types to standard types
-    df['arrival_airport'] = df['arrival_airport'].map(TRANSLATION)
-    df['departure_airport'] = df['departure_airport'].map(TRANSLATION)
-    df['Plane_type'] = df['Plane_type'].map(PLANE_TYPE_MAP)
-
     return df
 
 def get_ecef_from_coord(coord_str: str, altitude_ft: float) -> np.ndarray:
@@ -45,6 +40,16 @@ def get_ecef_from_coord(coord_str: str, altitude_ft: float) -> np.ndarray:
         R * np.cos(lat) * np.sin(lon), # Y
         R * np.sin(lat)                # Z
     ])
+    
+def translate(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Translate airport codes in the specified column to their lat/lon coordinates.
+    """
+    # Map airport codes to lat/lon and plane types to standard types
+    df['arrival_airport'] = df['arrival_airport'].map(TRANSLATION)
+    df['departure_airport'] = df['departure_airport'].map(TRANSLATION)
+    df['Plane_type'] = df['Plane_type'].map(PLANE_TYPE_MAP)
+    return df
 
 def generate_flight_schedule(file_path: str) -> pd.DataFrame:
     """
@@ -53,6 +58,7 @@ def generate_flight_schedule(file_path: str) -> pd.DataFrame:
     """
     # 1. Load Data
     df = load_data(file_path)
+    df = translate(df)
 
     # 2. Flatten Route into Waypoint Segments
     waypoints_list = []
@@ -61,12 +67,14 @@ def generate_flight_schedule(file_path: str) -> pd.DataFrame:
         route_points = [row['departure_airport']] + row['route'].split() + [row['arrival_airport']]
         for i in range(len(route_points) - 1):
             waypoints_list.append({
+                'route': row['route'],
                 'segment_number': i + 1,
                 'ACID': row['ACID'],
                 'Plane_type': row['Plane_type'],
                 'from': route_points[i],
                 'to': route_points[i + 1],
                 'passengers': row.get('passengers', 200),
+                'is_cargo': row.get('is_cargo', False),
                 'departure_time_orig': row['departure_time']
             })
     
@@ -107,7 +115,8 @@ def generate_flight_schedule(file_path: str) -> pd.DataFrame:
         'segment_number', 'ACID', 'from_ECEF', 'to_ECEF', 'travel_distance_nm',
         'Min_altitude_ft', 'Max_altitude_ft', 'Optimal_altitude_min', 'Optimal_altitude_max',
         'Max_cruise_Speed_knots', 'Min_cruise_Speed_knots', 'Min_Speed_knots', 'Max_Speed_knots',
-        'estimated_departure_time', 'estimated_arrival_time', 'chosen_altitude_ft', 'passengers'
+        'estimated_departure_time', 'estimated_arrival_time', 'chosen_altitude_ft', 'passengers',
+        'from', 'to', 'is_cargo', 'route', 'Plane_type'
     ]
     
     return wp_df[target_cols].sort_values('estimated_departure_time')

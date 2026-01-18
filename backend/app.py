@@ -3,6 +3,8 @@ import uuid
 from fastapi                            import FastAPI, HTTPException, status
 from datetime                           import datetime
 from typing                             import Optional
+
+import pandas as pd
 from backend.models                     import Flight, FlightFilters
 from backend.database                   import db
 from fastapi.middleware.cors            import CORSMiddleware
@@ -10,6 +12,7 @@ from backend.sentry.error_monitoring    import init_fast_api_sentry
 from backend.logging.logger             import get_logger
 from backend.scheduler.optimization_worker import optimizer_worker
 from backend.scheduler.work_queue       import queue, job_status
+from backend.scheduler.resolver       import CostDriven4DResolver
 from contextlib import asynccontextmanager
 
 
@@ -145,4 +148,4 @@ def get_job_flight_results(job_id: str):
             detail=f"Job with id: {job_id} is not yet completed"
         )
     
-    return job['result']
+    return CostDriven4DResolver.format_for_fastapi(pd.DataFrame(job['result']))
