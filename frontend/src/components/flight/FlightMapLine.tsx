@@ -3,7 +3,7 @@ import { LatLng } from 'leaflet';
 import type { Flight } from '@/helpers/Types.ts';
 import L from 'leaflet';
 
-export default function FlightMapLine({ flight, positions, colour, onSelect }: { flight: Flight, positions: LatLng[], colour: string, onSelect: (id: number) => void }) {
+export default function FlightMapLine({ flight, positions, colour, selectedFlightId, onSelect }: { flight: Flight, positions: LatLng[], colour: string, selectedFlightId: number, onSelect: (id: number) => void }) {
   if (positions.length == 0) {
     return (<></>);
   }
@@ -49,6 +49,19 @@ export default function FlightMapLine({ flight, positions, colour, onSelect }: {
           interactive: false
         }}
       />
+
+      {/* The "if selected" line */}
+      {selectedFlightId == flight.id &&
+        <Polyline
+          positions={positions}
+          pathOptions={{
+            color: colour,
+            weight: 10,
+            opacity: 0.7,
+            interactive: false // Clicks pass through to the 'Hit Area' below
+          }}
+        />
+      }
     </>
   );
 }

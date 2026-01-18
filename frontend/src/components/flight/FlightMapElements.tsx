@@ -113,7 +113,7 @@ export default function FlightMapElements({ flight, airports, selectedFlightId, 
 
   return (
     <>
-      <FlightMapLine flight={flight} positions={positions} colour={colour} onSelect={onSelect} />
+      <FlightMapLine flight={flight} positions={positions} colour={colour} onSelect={onSelect} selectedFlightId={selectedFlightId} />
       <PlaneMarker position={calculateCurrentFlightPosition(flight, positions, 0)} heading={heading} />
     </>
   );
